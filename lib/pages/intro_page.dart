@@ -34,7 +34,7 @@ class IntroPage extends StatelessWidget {
 
             //button
             MyButton(
-              onTap: () => Navigator.pushNamed(context, '/login_page'),
+              onTap: () => Navigator.pushNamed(context, '/auth_page'),
               child: const Icon(Icons.arrow_forward, color: Colors.white,),
             ),
           ],

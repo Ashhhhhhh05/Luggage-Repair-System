@@ -21,11 +21,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const AuthPage(),
+      home: const IntroPage(),
       theme: lightMode,
       routes: {
         '/intro_page': (context) => const IntroPage(),
-        '/login_page': (context) => LoginPage(),
+        '/auth_page': (context) => const AuthPage(),
+        '/login_page': (context) => const LoginPage(onTap: null,),
       },
     );
   }
