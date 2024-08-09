@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "895206997397",
+    "project_id": "ditgroup-29bfb",
+    "storage_bucket": "ditgroup-29bfb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:895206997397:android:b67ef9d7d6ba39d8398a9c",
+        "android_client_info": {
+          "package_name": "com.example.final_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyChdepGMzLtwuMKqgdCwmNLtRc_UX7JvyQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
