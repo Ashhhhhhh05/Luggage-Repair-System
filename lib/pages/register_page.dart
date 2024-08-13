@@ -35,7 +35,7 @@ class _RegisterPageState extends State<RegisterPage> {
       //check if password is confirmed
       if (passwordController.text == confirmPasswordController.text) {
         await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: emailController.text,
+          email: emailController.text.trim(),
           password: passwordController.text,
         );
       }else{
@@ -115,22 +115,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   obscureText: true,
                   myIcon: Icons.lock,
                 ),
-
-                //forgot password
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        "Forgot Password?",
-                        style: TextStyle(color: Colors.grey.shade600),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 15),
 
                 //signIn button
                 MyButton(
