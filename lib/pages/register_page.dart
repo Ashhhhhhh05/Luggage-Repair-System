@@ -97,7 +97,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   controller: emailController,
                   hintText: 'Email',
                   obscureText: false,
-                  myIcon: Icons.person,
+                  myIcon: Icons.email_outlined,
                 ),
 
                 //password text field
@@ -106,6 +106,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   hintText: 'Password',
                   obscureText: true,
                   myIcon: Icons.lock_outline,
+                  showPasswordToggle: true,
                 ),
 
                 //confirm password text field
@@ -113,7 +114,8 @@ class _RegisterPageState extends State<RegisterPage> {
                   controller: confirmPasswordController,
                   hintText: 'Confirm Password',
                   obscureText: true,
-                  myIcon: Icons.lock,
+                  myIcon: Icons.lock_outline,
+                  showPasswordToggle: true,
                 ),
 
                 //signIn button
@@ -133,7 +135,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
                 const SizedBox(height: 10),
 
-                //not a member? signUp here
+                //already a member? Login here
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

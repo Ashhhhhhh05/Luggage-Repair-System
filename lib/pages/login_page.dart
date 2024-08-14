@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:final_app/components/my_button.dart';
 import 'package:final_app/components/my_textfield.dart';
 
+import 'forgot_pw_page.dart';
+
 class LoginPage extends StatefulWidget {
   final Function()? onTap;
+
   const LoginPage({super.key, required this.onTap});
 
   @override
@@ -86,7 +89,7 @@ class _LoginPageState extends State<LoginPage> {
                   "Welcome back, you've been missed!",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 19,
                     color: Theme.of(context).colorScheme.inversePrimary,
                   ),
                 ),
@@ -98,7 +101,7 @@ class _LoginPageState extends State<LoginPage> {
                   controller: emailController,
                   hintText: 'Email',
                   obscureText: false,
-                  myIcon: Icons.person,
+                  myIcon: Icons.email_outlined,
                 ),
 
                 //password text field
@@ -107,6 +110,7 @@ class _LoginPageState extends State<LoginPage> {
                   hintText: 'Password',
                   obscureText: true,
                   myIcon: Icons.lock_outline,
+                  showPasswordToggle: true,
                 ),
 
                 //forgot password
@@ -115,9 +119,24 @@ class _LoginPageState extends State<LoginPage> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Text(
-                        "Forgot Password?",
-                        style: TextStyle(color: Colors.grey.shade600),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return const ForgotPasswordPage();
+                              },
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          "Forgot Password?",
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -149,7 +168,7 @@ class _LoginPageState extends State<LoginPage> {
                     Text(
                       'Not a member?',
                       style: TextStyle(
-                        color: Colors.grey.shade700,
+                        color: Theme.of(context).colorScheme.inversePrimary,
                       ),
                     ),
                     const SizedBox(width: 4),
