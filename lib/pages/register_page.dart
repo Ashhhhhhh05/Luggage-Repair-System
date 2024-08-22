@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:final_app/components/my_button.dart';
@@ -24,6 +25,7 @@ class _RegisterPageState extends State<RegisterPage> {
     //show loading icon
     showDialog(
         context: context,
+        barrierDismissible: false,
         builder: (context) {
           return const Center(
             child: CircularProgressIndicator(),
@@ -34,20 +36,30 @@ class _RegisterPageState extends State<RegisterPage> {
     try {
       //check if password is confirmed
       if (passwordController.text == confirmPasswordController.text) {
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        UserCredential userCredential =
+            await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: emailController.text.trim(),
           password: passwordController.text,
         );
-      }else{
-        //show error message, passwords don't match
+
+        //Get user id
+        String uid = userCredential.user!.uid;
+
+        //Pop loading icon + save customers role in Firestore
+        Navigator.pop(context);
+        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'role': 'customer',
+        });
+      }
+
+      else {
+        //pop loading icon + show error message, passwords don't match
+        Navigator.pop(context);
         showErrorMessage("Passwords do not match!");
       }
-      //pop the loading icon
-      Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
-      //pop the loading icon
+      //pop loading + show error message
       Navigator.pop(context);
-      //show error message
       showErrorMessage(e.code);
     }
   }
@@ -73,10 +85,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme
-          .of(context)
-          .colorScheme
-          .primary,
+      backgroundColor: Theme.of(context).colorScheme.primary,
       body: SingleChildScrollView(
         child: SafeArea(
           child: Center(
@@ -133,7 +142,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                 ),
 
-                const SizedBox(height: 10),
+                const SizedBox(height: 30),
 
                 //already a member? Login here
                 Row(
