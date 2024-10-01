@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:final_app/pages/home_page.dart';
 import 'package:final_app/pages/login_or_register_page.dart';
+import 'package:final_app/pages/admin/unauthorized_access.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'admin_page.dart';
+import 'admin/admin_page.dart';
+import 'customer/customer_home_nav.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class AuthPage extends StatelessWidget {
   const AuthPage({super.key});
@@ -35,21 +37,36 @@ class AuthPage extends StatelessWidget {
                 }
 
                 //check the users role
-                if (roleSnapshot.data != null && roleSnapshot.data!.exists) {
-                  final role = roleSnapshot.data!.get('role');
-                  if (role == 'admin') {
-                    return AdminPage();
-                  } else {
-                    return HomePage();
+                if (roleSnapshot.hasData && roleSnapshot.data != null) {
+                  final data = roleSnapshot.data;
+                  if (data != null && data.exists) {
+                    final role = roleSnapshot.data!.get('role');
+
+                    if (kIsWeb) {
+                      if (role == 'admin') {
+                        return AdminPage();
+                      } else {
+                        return const CustomerHomeNav();
+                      }
+                    } else {
+                      if (role == 'admin') {
+                        FirebaseAuth.instance.signOut().then((_) {
+                          Navigator.of(context).push(
+                              MaterialPageRoute(builder: (context) => const UnauthorizedAccess()),
+                          );
+                          });
+                      } else {
+                        return const CustomerHomeNav();
+                      }
+                    }
                   }
-                } else {
-                  //if user not found
-                  return const LoginOrRegisterPage();
                 }
+                //if user not found
+                return const LoginOrRegisterPage();
               },
             );
           } else {
-            //user not logged in/failed
+            //user not logged in
             return const LoginOrRegisterPage();
           }
         },

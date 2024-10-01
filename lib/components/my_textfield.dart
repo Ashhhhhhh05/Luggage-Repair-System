@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class MyTextField extends StatefulWidget {
   final controller;
-  final String hintText;
+  final String label;
   final bool obscureText;
   final IconData myIcon;
   final bool showPasswordToggle;
@@ -10,7 +10,7 @@ class MyTextField extends StatefulWidget {
   const MyTextField({
     super.key,
     required this.controller,
-    required this.hintText,
+    required this.label,
     required this.obscureText,
     required this.myIcon,
     this.showPasswordToggle = false,
@@ -39,23 +39,31 @@ class _MyTextFieldState extends State<MyTextField> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(25.0),
-      child: TextField(
-        style: const TextStyle(color: Colors.black),
+      child: TextFormField(
+        style: TextStyle(color: Theme.of(context).colorScheme.tertiary),
         controller: widget.controller,
         obscureText: isObscure,
         decoration: InputDecoration(
+          label: Text(
+              widget.label,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.tertiary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           prefixIcon: Icon(
             widget.myIcon,
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.tertiary,
           ),
-          suffixIcon: widget.showPasswordToggle ? GestureDetector(
-            onTap: toggleVisibility,
-            child: Icon(
-              isObscure ? Icons.visibility_off : Icons.visibility,
-              color: Colors.black,
-            ),
-          )
-          : null,
+          suffixIcon: widget.showPasswordToggle
+              ? GestureDetector(
+                  onTap: toggleVisibility,
+                  child: Icon(
+                    isObscure ? Icons.visibility_off : Icons.visibility,
+                    color: Theme.of(context).colorScheme.tertiary,
+                  ),
+                )
+              : null,
           enabledBorder: OutlineInputBorder(
             borderSide:
                 BorderSide(color: Theme.of(context).colorScheme.secondary),
@@ -63,12 +71,11 @@ class _MyTextFieldState extends State<MyTextField> {
           ),
           focusedBorder: OutlineInputBorder(
             borderSide:
-                BorderSide(color: Theme.of(context).colorScheme.primary),
-            borderRadius: BorderRadius.circular(30.0),
+                const BorderSide(color: Colors.black),
+            borderRadius: BorderRadius.circular(10.0),
           ),
-          fillColor: Colors.grey.shade200,
+          fillColor: Theme.of(context).colorScheme.secondary,
           filled: true,
-          hintText: widget.hintText,
           hintStyle: TextStyle(color: Colors.grey.shade500),
         ),
       ),
