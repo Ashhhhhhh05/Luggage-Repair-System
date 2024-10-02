@@ -4,7 +4,7 @@ class MyTextField extends StatefulWidget {
   final controller;
   final String label;
   final bool obscureText;
-  final IconData myIcon;
+  final IconData? myIcon;
   final bool showPasswordToggle;
 
   const MyTextField({
@@ -38,14 +38,14 @@ class _MyTextFieldState extends State<MyTextField> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(25.0),
+      padding:  const EdgeInsets.all(25.0),
       child: TextFormField(
         style: TextStyle(color: Theme.of(context).colorScheme.tertiary),
         controller: widget.controller,
         obscureText: isObscure,
         decoration: InputDecoration(
           label: Text(
-              widget.label,
+            widget.label,
             style: TextStyle(
               color: Theme.of(context).colorScheme.tertiary,
               fontWeight: FontWeight.bold,
@@ -70,8 +70,7 @@ class _MyTextFieldState extends State<MyTextField> {
             borderRadius: BorderRadius.circular(22),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide:
-                const BorderSide(color: Colors.black),
+            borderSide: const BorderSide(color: Colors.black),
             borderRadius: BorderRadius.circular(10.0),
           ),
           fillColor: Theme.of(context).colorScheme.secondary,

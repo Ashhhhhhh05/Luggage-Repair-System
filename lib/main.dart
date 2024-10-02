@@ -1,5 +1,5 @@
 import 'package:final_app/firebase_options.dart';
-import 'package:final_app/pages/auth_page.dart';
+import 'package:final_app/services/auth/auth_page.dart';
 import 'package:final_app/pages/customer/customer_home_nav.dart';
 import 'package:final_app/pages/customer/customer_settings_page.dart';
 import 'package:final_app/pages/register_page.dart';

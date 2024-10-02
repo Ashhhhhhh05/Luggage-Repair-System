@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:final_app/components/my_button.dart';
@@ -14,6 +15,8 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   //text-editing controllers
   final emailController = TextEditingController();
 
@@ -32,9 +35,15 @@ class _LoginPageState extends State<LoginPage> {
 
     //try sign in
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text,
+      );
+      // store user info in a separate doc
+      _firestore.collection("chats").doc(userCredential.user!.uid).update(
+        {
+          'uid': userCredential.user!.uid, 'email': emailController.text.trim(),
+        },
       );
       //pop the loading icon
       Navigator.pop(context);

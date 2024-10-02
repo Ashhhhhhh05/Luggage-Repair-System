@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:final_app/pages/customer/customer_home_nav.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:final_app/components/my_button.dart';
@@ -14,6 +15,8 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   //text-editing controllers
   final nameController = TextEditingController();
   final surnameController = TextEditingController();
@@ -43,6 +46,15 @@ class _RegisterPageState extends State<RegisterPage> {
           password: passwordController.text,
         );
 
+        // store user info in a separate doc
+        _firestore.collection("chats").doc(userCredential.user!.uid).set(
+          {
+            'uid': userCredential.user!.uid,
+            'email': emailController.text.trim(),
+            'role': 'customer',
+          },
+        );
+
         //Get user id
         String uid = userCredential.user!.uid;
 
@@ -53,6 +65,12 @@ class _RegisterPageState extends State<RegisterPage> {
           'firstName': nameController.text.trim(),
           'Surname': surnameController.text.trim(),
         });
+
+        // Navigate to Homepage
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const CustomerHomeNav()),
+        );
       } else {
         //pop loading icon + show error message, passwords don't match
         Navigator.pop(context);
@@ -124,8 +142,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           //logo
                           Icon(Icons.shopping_bag,
                               size: 100,
-                              color:
-                                  Theme.of(context).colorScheme.tertiary),
+                              color: Theme.of(context).colorScheme.tertiary),
 
                           const SizedBox(height: 15),
 
@@ -137,7 +154,6 @@ class _RegisterPageState extends State<RegisterPage> {
                               color: Theme.of(context).colorScheme.tertiary,
                             ),
                           ),
-
 
                           //name text field
                           MyTextField(
@@ -189,7 +205,9 @@ class _RegisterPageState extends State<RegisterPage> {
                               child: Text(
                                 "Sign Up",
                                 style: TextStyle(
-                                  color: Theme.of(context).colorScheme.inversePrimary,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .inversePrimary,
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -206,9 +224,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               Text(
                                 'Already have an account?',
                                 style: TextStyle(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .tertiary,
+                                  color: Theme.of(context).colorScheme.tertiary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
