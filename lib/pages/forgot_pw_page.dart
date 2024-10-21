@@ -46,7 +46,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(
-          color: Theme.of(context).colorScheme.inversePrimary,
+          color: Theme.of(context).colorScheme.tertiary,
         ),
       ),
       extendBodyBehindAppBar: true,
@@ -70,12 +70,19 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             Expanded(
               flex: 7,
               child: Container(
+                constraints: const BoxConstraints(maxWidth: 600),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.inversePrimary,
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(50.0),
                     topRight: Radius.circular(50.0),
                   ),
+                  boxShadow: const [BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 5.0,
+                    spreadRadius: 2.0,
+                    offset: Offset(0, 5),
+                  )],
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,

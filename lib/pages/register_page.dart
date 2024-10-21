@@ -64,6 +64,7 @@ class _RegisterPageState extends State<RegisterPage> {
           'role': 'customer',
           'firstName': nameController.text.trim(),
           'Surname': surnameController.text.trim(),
+          'email': emailController.text.trim(),
         });
 
         // Navigate to Homepage
@@ -123,14 +124,21 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
             Expanded(
-              flex: 7,
+              flex: 8,
               child: Container(
+                constraints: const BoxConstraints(maxWidth: 600),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.inversePrimary,
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(50.0),
                     topRight: Radius.circular(50.0),
                   ),
+                  boxShadow: const [BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 5.0,
+                    spreadRadius: 2.0,
+                    offset: Offset(0, 5),
+                  )],
                 ),
                 child: SingleChildScrollView(
                   child: SafeArea(
@@ -141,16 +149,16 @@ class _RegisterPageState extends State<RegisterPage> {
 
                           //logo
                           Icon(Icons.shopping_bag,
-                              size: 100,
+                              size: 80,
                               color: Theme.of(context).colorScheme.tertiary),
 
-                          const SizedBox(height: 15),
+                          const SizedBox(height: 5),
 
                           Text(
                             "Let's create you an account!",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 19,
+                              fontSize: 18,
                               color: Theme.of(context).colorScheme.tertiary,
                             ),
                           ),
@@ -197,6 +205,8 @@ class _RegisterPageState extends State<RegisterPage> {
                             showPasswordToggle: true,
                           ),
 
+                          const SizedBox(height: 10),
+
                           //signIn button
                           MyButton(
                             color: Theme.of(context).colorScheme.tertiary,
@@ -208,14 +218,14 @@ class _RegisterPageState extends State<RegisterPage> {
                                   color: Theme.of(context)
                                       .colorScheme
                                       .inversePrimary,
-                                  fontSize: 16,
+                                  fontSize: 15,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
                           ),
 
-                          const SizedBox(height: 25),
+                          const SizedBox(height: 15),
 
                           //already a member? Login here
                           Row(
@@ -240,7 +250,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ),
                               ),
                             ],
-                          )
+                          ),
                         ],
                       ),
                     ),

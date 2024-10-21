@@ -17,7 +17,7 @@ class MyButton extends StatelessWidget {
           color: color,
           borderRadius: BorderRadius.circular(90),
         ),
-        padding: const EdgeInsets.all(30),
+        padding: const EdgeInsets.symmetric(vertical: 20),
         child: child,
       ),
     );

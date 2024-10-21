@@ -38,7 +38,7 @@ class _MyTextFieldState extends State<MyTextField> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:  const EdgeInsets.all(25.0),
+      padding:  const EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
       child: TextFormField(
         style: TextStyle(color: Theme.of(context).colorScheme.tertiary),
         controller: widget.controller,

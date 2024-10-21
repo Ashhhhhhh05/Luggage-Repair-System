@@ -17,15 +17,15 @@ class CustomerHomeNav extends StatefulWidget {
 
 class _CustomerHomeNavState extends State<CustomerHomeNav> {
   //sign user out method
-  void signUserOut() {
-    FirebaseAuth.instance.signOut();
+  void signUserOut() async {
+    await FirebaseAuth.instance.signOut();
   }
 
   int selectedIndex = 0;
 
   final List<Widget> pages = [
     const CustomerContentPage(),
-    const CustomerBookingPage(),
+    CustomerBookingPage(),
     CustomerMessagesPage(),
     const CustomerAccountPage(),
   ];

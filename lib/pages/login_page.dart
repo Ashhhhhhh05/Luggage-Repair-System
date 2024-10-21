@@ -80,7 +80,7 @@ class _LoginPageState extends State<LoginPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(
-          color: Theme.of(context).colorScheme.inversePrimary,
+          color: Theme.of(context).colorScheme.tertiary,
         ),
       ),
       extendBodyBehindAppBar: true,
@@ -103,14 +103,21 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
             Expanded(
-              flex: 7,
+              flex: 5,
               child: Container(
+                constraints: const BoxConstraints(maxWidth: 600),
                 decoration:  BoxDecoration(
                   color: Theme.of(context).colorScheme.inversePrimary,
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(50.0),
                     topRight: Radius.circular(50.0),
                   ),
+                  boxShadow: const [BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 5.0,
+                    spreadRadius: 2.0,
+                    offset: Offset(0, 5),
+                  )],
                 ),
                 child: SingleChildScrollView(
                   child: SafeArea(

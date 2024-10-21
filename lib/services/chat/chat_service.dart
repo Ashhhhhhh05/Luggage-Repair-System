@@ -8,7 +8,7 @@ class ChatService {
 
   // Get the current user's role from the chats collection
   Future<String?> getCurrentUserRole() async {
-    final user = AuthPage().getCurrentUser();
+    final user = const AuthPage().getCurrentUser();
     if (user != null) {
       DocumentSnapshot roleSnapshot = await _firestore.collection('chats').doc(user.uid).get();
       if (roleSnapshot.exists) {
@@ -47,8 +47,8 @@ class ChatService {
   // send message
   Future<void> sendMessage(String receiverID, message, Timestamp timestamp) async {
     // get current user info
-    final String currentUserID = AuthPage().getCurrentUser()!.uid;
-    final String currentUserEmail = AuthPage().getCurrentUser()!.email!;
+    final String currentUserID = const AuthPage().getCurrentUser()!.uid;
+    final String currentUserEmail = const AuthPage().getCurrentUser()!.email!;
     final Timestamp timestamp = Timestamp.now();
 
     // create a new message

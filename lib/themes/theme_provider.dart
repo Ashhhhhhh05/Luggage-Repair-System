@@ -21,4 +21,13 @@ class ThemeProvider with ChangeNotifier {
       themeData = lightMode;
     }
   }
+
+  void updateTheme(Brightness brightness){
+    if(brightness == Brightness.dark){
+      themeData = darkMode;
+    }else{
+      themeData = lightMode;
+    }
+  }
+
 }

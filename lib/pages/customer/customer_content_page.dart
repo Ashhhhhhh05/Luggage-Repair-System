@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'customer_pickup_page.dart';
 import 'customer_repair_page.dart';
 
 class CustomerContentPage extends StatefulWidget {
@@ -8,34 +9,8 @@ class CustomerContentPage extends StatefulWidget {
   State<CustomerContentPage> createState() => _CustomerContentPageState();
 }
 
-class FadeSlidePageRoute<T> extends PageRouteBuilder<T> {
-  final Widget page;
-
-  FadeSlidePageRoute({required this.page})
-      : super(
-    pageBuilder: (context, animation, secondaryAnimation) => page,
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      const begin = Offset(1.0, 0.0); // Start position (right side)
-      const end = Offset.zero; // End position (center)
-      const curve = Curves.elasticInOut;
-
-      var tween = Tween(begin: begin, end: end).chain(
-        CurveTween(curve: curve),
-      );
-
-      return SlideTransition(
-        position: animation.drive(tween),
-        child: FadeTransition(
-          opacity: animation,
-          child: child,
-        ),
-      );
-    },
-  );
-}
-
 class _CustomerContentPageState extends State<CustomerContentPage> {
-  final PageController _controller = PageController(viewportFraction: 0.9);
+  final PageController _controller = PageController(viewportFraction: 0.85); // Slightly reduce the card size
 
   @override
   Widget build(BuildContext context) {
@@ -45,189 +20,90 @@ class _CustomerContentPageState extends State<CustomerContentPage> {
           builder: (context, child) {
             return LayoutBuilder(
               builder: (context, constraints) {
-                if (_controller.hasClients &&
-                    _controller.position.hasContentDimensions) {
-                  final page = _controller.page ?? 0;
-                  final cardIndex = page.round(); // Current page index
-                  final isCurrentPage = cardIndex == _controller.page?.round();
-                  final scale = isCurrentPage
-                      ? 1 - (_controller.page! - cardIndex).abs() * 0.2
-                      : 0.8;
-                  final opacity = isCurrentPage
-                      ? 1 - (_controller.page! - cardIndex).abs()
-                      : 0.8;
-
-                  return Transform.scale(
-                    scale: scale,
-                    child: Opacity(
-                      opacity: opacity,
-                      child: Container(
-                        width: 800,
-                        padding: const EdgeInsets.all(16),
-                        margin:
-                        const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Colors.blue[900]!, Colors.blueAccent],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 6,
-                              offset: Offset(0, 3),
+                return Container(
+                  width: MediaQuery.of(context).size.width * 0.85, // Responsive width
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.blue[900]!, Colors.blueAccent],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 6,
+                        offset: Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 42, // Reduce the font size for better fitting
+                                fontWeight: FontWeight.bold,
+                                fontFamily: "nunito",
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 8,
+                            ),
+                            Text(
+                              description,
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 18,
+                                fontFamily: "Mont",
+                              ),
                             ),
                           ],
                         ),
-                        child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(
-                                height: 300,
+                      ),
+                      const SizedBox(
+                        height: 32, // Add spacing between the description and button
+                      ),
+                      SizedBox(
+                        height: 60,
+                        width: double.infinity, // Ensure the button spans the card width
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => nextPage),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[900],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              "OPEN SERVICE",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontFamily: "nunito",
+                                fontWeight: FontWeight.w900,
                               ),
-                              Text(
-                                title,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 52,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: "nunito",
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 8,
-                              ),
-                              Text(
-                                description,
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 20,
-                                  fontFamily: "Mont",
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 64,
-                              ),
-                              SizedBox(
-                                height: 60,
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                        context,
-                                        //ZoomPageRoute(builder: (context) => nextPage),
-                                        FadeSlidePageRoute(page: nextPage));
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue[900],
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                  child: const Center(
-                                    child: Text(
-                                      "OPEN SERVICE",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 20,
-                                        fontFamily: "nunito",
-                                        fontWeight: FontWeight.w900,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              )
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  );
-                } else {
-                  return Container(
-                    width: 800,
-                    padding: const EdgeInsets.all(16),
-                    margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.blue[900]!, Colors.blueAccent],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 6,
-                          offset: Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(
-                            height: 300,
-                          ),
-                          Text(
-                            title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 52,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: "nunito",
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 8,
-                          ),
-                          Text(
-                            description,
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 20,
-                              fontFamily: "Mont",
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 64,
-                          ),
-                          SizedBox(
-                            height: 60,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.push(
-                                    context,
-                                    //ZoomPageRoute(builder: (context) => nextPage),
-                                    FadeSlidePageRoute(page: nextPage));
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue[900],
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  "OPEN SERVICE",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20,
-                                    fontFamily: "nunito",
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  ); // Return an empty container until dimensions are established
-                }
+                      )
+                    ],
+                  ),
+                );
               },
             );
           },
@@ -246,7 +122,7 @@ class _CustomerContentPageState extends State<CustomerContentPage> {
           buildCard(
             "PICKUP",
             'Schedule a pickup for your luggage after booking',
-            const CustomerRepairPage(),
+            const CustomerPickupPage(),
           ),
           buildCard(
             "DELIVERY",

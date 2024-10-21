@@ -1,5 +1,5 @@
+import 'package:final_app/components/intro_button.dart';
 import 'package:flutter/material.dart';
-import 'package:final_app/components/my_button.dart';
 
 class IntroPage extends StatelessWidget {
   const IntroPage({super.key});
@@ -43,7 +43,7 @@ class IntroPage extends StatelessWidget {
                   const SizedBox(height: 20),
 
                   //button
-                  MyButton(
+                  IntroButton(
                     color: Colors.black,
                     onTap: () => Navigator.pushNamed(context, '/auth_page'),
                     child: const Icon(

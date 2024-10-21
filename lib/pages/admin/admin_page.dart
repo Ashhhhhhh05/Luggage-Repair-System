@@ -9,8 +9,8 @@ class AdminPage extends StatelessWidget {
   final user = FirebaseAuth.instance.currentUser!;
 
   //sign user out method
-  void signUserOut() {
-    FirebaseAuth.instance.signOut();
+  void signUserOut() async {
+    await FirebaseAuth.instance.signOut();
   }
 
   @override
@@ -25,15 +25,20 @@ class AdminPage extends StatelessWidget {
         ],
         title: const Text('Admin Page'),
       ),
-      body: MyButton(
-        onTap: () => Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => AdminMessagesPage()),
-        ),
-        color: Colors.blue,
-        child: Padding(
-          padding: const EdgeInsets.all(25.0),
-          child: (Text("Go to Messages", style: TextStyle(fontSize: 20),)),
+      body: Center(
+        child: MyButton(
+          onTap: () => Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => AdminMessagesPage()),
+          ),
+          color: Colors.blue,
+          child: const Padding(
+            padding: EdgeInsets.all(25.0),
+            child: (Text(
+              "Go to Messages",
+              style: TextStyle(fontSize: 16),
+            )),
+          ),
         ),
       ),
     );

@@ -49,7 +49,7 @@ class AdminMessagesPage extends StatelessWidget {
   Widget _buildUserListItem(
       Map<String, dynamic> userData, BuildContext context) {
     // display all users except current user
-    if (userData['email'] != AuthPage().getCurrentUser()!.email) {
+    if (userData['email'] != const AuthPage().getCurrentUser()!.email) {
       return UserTile(
         text: userData['email'],
         onTap: () {

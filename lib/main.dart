@@ -23,8 +23,33 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  Brightness? _previousBrightness;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Check system brightness
+    final brightness = MediaQuery.of(context).platformBrightness;
+
+    // Update theme only if brightness has changed
+    if (_previousBrightness != brightness) {
+      // Schedule the theme update after the current frame
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Provider.of<ThemeProvider>(context, listen: false).updateTheme(brightness);
+      });
+      // Update the previous brightness
+      _previousBrightness = brightness;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
