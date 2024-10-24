@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:final_app/pages/customer/customer_delivery_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'customer_pickup_page.dart';
+import 'repair_status_page.dart';
 import 'customer_repair_page.dart';
 
 class CustomerContentPage extends StatefulWidget {
@@ -10,7 +13,44 @@ class CustomerContentPage extends StatefulWidget {
 }
 
 class _CustomerContentPageState extends State<CustomerContentPage> {
-  final PageController _controller = PageController(viewportFraction: 0.85); // Slightly reduce the card size
+  // Slightly reduce the card size
+  final PageController _controller = PageController(viewportFraction: 0.80);
+  // get repair requests
+  List<Map<String, dynamic>> repairRequests = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserRepairRequests(); // Fetch repair requests when the widget initializes
+  }
+
+  Future<void> fetchUserRepairRequests() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        // Fetch repair requests from Firestore for the current user
+        QuerySnapshot snapshot = await FirebaseFirestore.instance
+            .collection('repair_request')
+            .where('userId', isEqualTo: user.uid) // Filter by user ID
+            .get();
+
+        // Convert the fetched documents into a list of maps
+        repairRequests = snapshot.docs.map((doc) {
+          return {
+            'id': doc.id,
+            'status': doc['status'],
+          };
+        }).toList();
+      } catch (e) {
+        // Handle errors if needed
+        print('Error fetching repair requests: $e');
+      }
+      setState(() {
+        isLoading = false; // Update loading state after fetching data
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +90,7 @@ class _CustomerContentPageState extends State<CustomerContentPage> {
                               title,
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 42, // Reduce the font size for better fitting
+                                fontSize: 42,
                                 fontWeight: FontWeight.bold,
                                 fontFamily: "nunito",
                               ),
@@ -70,11 +110,11 @@ class _CustomerContentPageState extends State<CustomerContentPage> {
                         ),
                       ),
                       const SizedBox(
-                        height: 32, // Add spacing between the description and button
+                        height: 32,
                       ),
                       SizedBox(
                         height: 60,
-                        width: double.infinity, // Ensure the button spans the card width
+                        width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
                             Navigator.push(
@@ -121,13 +161,13 @@ class _CustomerContentPageState extends State<CustomerContentPage> {
           ),
           buildCard(
             "PICKUP",
-            'Schedule a pickup for your luggage after booking',
-            const CustomerPickupPage(),
+            'Schedule a pickup for your luggage after your repair request has been approved',
+            RepairStatusPage(repairRequests: repairRequests),
           ),
           buildCard(
             "DELIVERY",
             'Get your repaired luggage delivered back to you',
-            const CustomerRepairPage(),
+            const CustomerDeliveryPage(),
           ),
         ],
       ),

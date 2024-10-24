@@ -31,6 +31,7 @@ class _CustomerRepairPageState extends State<CustomerRepairPage> {
   final TextEditingController _descriptionController = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+
   @override
   void initState() {
     super.initState();
@@ -119,6 +120,7 @@ class _CustomerRepairPageState extends State<CustomerRepairPage> {
 
     // Prepare data to store in Firestore
     final repairId = DateTime.now().millisecondsSinceEpoch.toString();
+    final timestamp = DateTime.now();
     // Initialize a list to hold image URLs
     List<String> imageUrls = [];
 
@@ -175,9 +177,20 @@ class _CustomerRepairPageState extends State<CustomerRepairPage> {
       }
     }
 
+    String fee;
+    if (warrantyOption == 'Yes, it is under warranty') {
+      fee = "Free";
+    } else {
+      fee = "To be determined";
+    }
+
+
     // Prepare the luggage data with image URLs
     final luggageData = {
       'repairId': repairId,
+      'userId': user.uid,
+      'date': timestamp,
+      'status': 'Pending',
       'customerName': customerFirstName,
       'customerSurname': customerSurname,
       'customerEmail': customerEmail,
@@ -187,6 +200,7 @@ class _CustomerRepairPageState extends State<CustomerRepairPage> {
       'description': _descriptionController.text.trim(),
       'under_warranty': warrantyOption,
       'proofImage': proofImageUrl,
+      'fee': fee,
     };
 
     try {

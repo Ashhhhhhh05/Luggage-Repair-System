@@ -1,7 +1,7 @@
-import 'package:final_app/components/my_drawer_tile.dart';
 import 'package:final_app/pages/customer/customer_settings_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'customer_account_page.dart';
 import 'customer_booking_page.dart';
@@ -25,7 +25,7 @@ class _CustomerHomeNavState extends State<CustomerHomeNav> {
 
   final List<Widget> pages = [
     const CustomerContentPage(),
-    CustomerBookingPage(),
+    const CustomerBookingPage(),
     CustomerMessagesPage(),
     const CustomerAccountPage(),
   ];
@@ -34,53 +34,104 @@ class _CustomerHomeNavState extends State<CustomerHomeNav> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: Drawer(
-        child: Column(
-          children: [
-            // App Logo
-            Padding(
-              padding: const EdgeInsets.only(top: 100.0),
-              child: Text(
-                "Matrix",
-                style: TextStyle(
-                  color: Colors.blue[900]!,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 50,
-                  fontFamily: "june",
+        child: Container(
+          color: Colors.blue[900],
+          child: ListView(
+            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 0),
+            children: [
+              _buildDrawerHeader(),
+              _buildDrawerItem(
+                icon: FontAwesomeIcons.house,
+                text: 'Home',
+                index: 0,
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() {
+                    selectedIndex = 0;
+                  });
+                },
+              ),
+              _buildDrawerItem(
+                icon: FontAwesomeIcons.calendar,
+                text: 'My Bookings',
+                index: 1,
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() {
+                    selectedIndex = 1;
+                  });
+                },
+              ),
+              _buildDrawerItem(
+                icon: FontAwesomeIcons.solidMessage,
+                text: 'Messages',
+                index: 2,
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() {
+                    selectedIndex = 2;
+                  });
+                },
+              ),
+              _buildDrawerItem(
+                icon: FontAwesomeIcons.circleUser,
+                text: 'Account',
+                index: 3,
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() {
+                    selectedIndex = 3;
+                  });
+                },
+              ),
+              _buildDrawerItem(
+                icon: FontAwesomeIcons.fileContract,
+                text: 'Terms & Conditions',
+                index: 4,
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() {});
+                },
+              ),
+              _buildDrawerItem(
+                icon: FontAwesomeIcons.circleInfo,
+                text: 'FAQs',
+                index: 5,
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() {});
+                },
+              ),
+              _buildDrawerItem(
+                icon: FontAwesomeIcons.gear,
+                text: 'Settings',
+                index: 6,
+                onTap: () {
+                  Navigator.pushNamed(context, '/customer_settings_page');
+                },
+              ),
+              _buildDrawerItem(
+                icon: FontAwesomeIcons.rightFromBracket,
+                text: 'Logout',
+                index: 7,
+                onTap: () {
+                  signUserOut();
+                },
+              ),
+
+              const Spacer(),
+              const Padding(
+                padding: EdgeInsets.all(20.0),
+                child: Text(
+                  'App version 1.0.0',
+                  style: TextStyle(color: Colors.white54),
                 ),
               ),
-            ),
+              const SizedBox(height: 20),
+              _buildSocialMediaIcons(),
 
-            // Divider
-            Padding(
-              padding: const EdgeInsets.all(25.0),
-              child: Divider(
-                color: Theme.of(context).colorScheme.tertiary,
-              ),
-            ),
-
-            // Push to Home Page
-            MyDrawerTile(
-              text: "H O M E",
-              icon: Icons.home,
-              onTap: () => Navigator.pushNamed(context, '/customer_home_nav'),
-            ),
-
-            // Push to Settings Page
-            MyDrawerTile(
-              text: "S E T T I N G S",
-              icon: Icons.settings_outlined,
-              onTap: () =>
-                  Navigator.pushNamed(context, '/customer_settings_page'),
-            ),
-
-            const Spacer(),
-
-            // Log out
-            MyDrawerTile(
-                text: "L O G O U T", icon: Icons.logout, onTap: signUserOut),
-
-            const SizedBox(height: 25),
-          ],
+            ],
+          ),
         ),
       ),
       appBar: AppBar(
@@ -130,7 +181,6 @@ class _CustomerHomeNavState extends State<CustomerHomeNav> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: const [
             BoxShadow(
-              //color: Colors.black26.withOpacity(0.4),
               color: Colors.blueAccent,
             )
           ],
@@ -161,4 +211,105 @@ class _CustomerHomeNavState extends State<CustomerHomeNav> {
       body: pages[selectedIndex],
     );
   }
+
+  Widget _buildDrawerHeader() {
+    return DrawerHeader(
+      decoration: BoxDecoration(
+        color: Colors.blue[900],
+      ),
+      child: const Column(
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 40,
+                backgroundImage: AssetImage('lib/assets/logo1.jpg'),
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Matrix',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 5),
+                    Text(
+                      'Gopal Luggage Repair System',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSocialMediaIcons() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          IconButton(
+            icon: const FaIcon(FontAwesomeIcons.instagram, color: Colors.white, size: 38,),
+            onPressed: () {
+
+            },
+          ),
+          IconButton(
+            icon: const FaIcon(FontAwesomeIcons.facebook, color: Colors.white, size: 38,),
+            onPressed: () {
+
+            },
+          ),
+          IconButton(
+            icon: const FaIcon(FontAwesomeIcons.xTwitter, color: Colors.white, size: 38,),
+            onPressed: () {
+
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required String text,
+    required GestureTapCallback onTap,
+    required int index,
+  }) {
+    bool isSelected = selectedIndex == index;
+    return Container(
+        width: 220, // Set the desired width
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        decoration: BoxDecoration(
+            color: isSelected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(15)
+        ),
+
+        child: ListTile(
+          leading: FaIcon(icon, color: isSelected ? Colors.blue[900] : Colors.white,),
+          title: Text(
+            text,
+            style: TextStyle(color: isSelected ? Colors.blue[900] : Colors.white, fontSize: 16),
+          ),
+          onTap: onTap,
+        )
+    );
+
+  }
 }
+

@@ -1,4 +1,5 @@
 import 'package:final_app/firebase_options.dart';
+import 'package:final_app/pages/customer/customer_pickup_page.dart';
 import 'package:final_app/services/auth/auth_page.dart';
 import 'package:final_app/pages/customer/customer_home_nav.dart';
 import 'package:final_app/pages/customer/customer_settings_page.dart';
@@ -64,6 +65,10 @@ class _MyAppState extends State<MyApp> {
         '/login_page': (context) => const LoginPage(onTap: null),
         '/customer_settings_page': (context) => const CustomerSettingsPage(),
         '/customer_home_nav': (context) => const CustomerHomeNav(),
+        '/customer_pickup_page': (context) {
+          final requestId = ModalRoute.of(context)!.settings.arguments as String;
+          return CustomerPickupPage(requestId: requestId);
+        },
       },
     );
   }
