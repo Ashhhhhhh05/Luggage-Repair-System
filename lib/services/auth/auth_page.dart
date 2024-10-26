@@ -8,7 +8,8 @@ import '../../pages/customer/customer_home_nav.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 class AuthPage extends StatelessWidget {
-  // get current user
+
+  // Get current user
   User? getCurrentUser(){
     return FirebaseAuth.instance.currentUser;
   }
@@ -21,11 +22,11 @@ class AuthPage extends StatelessWidget {
       body: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, authSnapshot) {
-          //user is logged in
+          // User is logged in
           if (authSnapshot.hasData) {
             final User? user = authSnapshot.data;
 
-            //check user role in firestore
+            // Get user role from firestore
             return StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('users')
@@ -36,23 +37,25 @@ class AuthPage extends StatelessWidget {
                   return Text('Error: ${roleSnapshot.error}');
                 }
 
-                //wait for Firestore data
+                // Wait for Firestore data
                 if (roleSnapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                //check the users role
+                // Check the users role
                 if (roleSnapshot.hasData && roleSnapshot.data != null) {
                   final data = roleSnapshot.data;
                   if (data != null && data.exists) {
                     final role = roleSnapshot.data!.get('role');
 
+                    // If on web && role = admin -> go to admin page
                     if (kIsWeb) {
                       if (role == 'admin') {
                         return AdminPage();
                       } else {
                         return const CustomerHomeNav();
                       }
+                      // If on mobile && role = admin -> unauthorized access
                     } else {
                       if (role == 'admin') {
                         FirebaseAuth.instance.signOut().then((_) {
@@ -66,12 +69,12 @@ class AuthPage extends StatelessWidget {
                     }
                   }
                 }
-                //if user not found
+                // If user not found
                 return const LoginOrRegisterPage();
               },
             );
           } else {
-            //user not logged in
+            // If user not logged in
             return const LoginOrRegisterPage();
           }
         },

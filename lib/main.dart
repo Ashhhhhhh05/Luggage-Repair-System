@@ -1,4 +1,5 @@
 import 'package:final_app/firebase_options.dart';
+import 'package:final_app/pages/customer/customer_delivery_page.dart';
 import 'package:final_app/pages/customer/customer_pickup_page.dart';
 import 'package:final_app/services/auth/auth_page.dart';
 import 'package:final_app/pages/customer/customer_home_nav.dart';
@@ -12,11 +13,13 @@ import 'package:final_app/pages/login_page.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
+  // Initialize widgets and firebase
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   runApp(
+    // Notify about changes in themes
     ChangeNotifierProvider(
       create: (context) => ThemeProvider(),
       child: const MyApp(),
@@ -34,6 +37,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   Brightness? _previousBrightness;
 
+  // Theme tracker
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -68,6 +72,10 @@ class _MyAppState extends State<MyApp> {
         '/customer_pickup_page': (context) {
           final requestId = ModalRoute.of(context)!.settings.arguments as String;
           return CustomerPickupPage(requestId: requestId);
+        },
+        '/customer_delivery_page': (context) {
+          final requestId = ModalRoute.of(context)!.settings.arguments as String;
+          return CustomerDeliveryPage(requestId: requestId);
         },
       },
     );

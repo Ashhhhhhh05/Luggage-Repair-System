@@ -12,7 +12,7 @@ class UserTile extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.secondary,
+          color: Colors.blue[900],
           borderRadius: BorderRadius.circular(12),
         ),
         margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 25),
@@ -20,12 +20,12 @@ class UserTile extends StatelessWidget {
         child: Row(
           children: [
             // icon
-            const Icon(Icons.person_outline),
+            const Icon(Icons.person_outline,color: Colors.white,),
 
             const SizedBox(width: 20),
 
             // user name
-            Text(text),
+            Text(text,style: const TextStyle(color: Colors.white, fontFamily: "Mont", fontSize: 15),),
           ],
         ),
       ),

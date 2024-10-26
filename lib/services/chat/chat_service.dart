@@ -12,7 +12,7 @@ class ChatService {
     if (user != null) {
       DocumentSnapshot roleSnapshot = await _firestore.collection('chats').doc(user.uid).get();
       if (roleSnapshot.exists) {
-        return roleSnapshot.get('role'); // Assuming 'role' field exists in the chats collection
+        return roleSnapshot.get('role');
       }
     }
     return null; // Return null if user not found or role doesn't exist

@@ -1,4 +1,7 @@
 import 'package:final_app/components/my_container.dart';
+import 'package:final_app/pages/customer/customer_account_page.dart';
+import 'package:final_app/pages/customer/privacy_policy_page.dart';
+import 'package:final_app/pages/customer/terms_conditions_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -18,9 +21,18 @@ class CustomerSettingsPage extends StatelessWidget {
       body: ListView(
         children: [
           // update account details
-          const MyContainer(
+          MyContainer(
               string: 'Update Account Details',
-              widget: Icon(Icons.arrow_forward_ios_outlined)),
+              widget: GestureDetector(
+                child: const Icon(Icons.arrow_forward_ios_outlined),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const CustomerAccountPage()),
+                  );
+                },
+              )),
 
           // dark mode
           MyContainer(
@@ -47,15 +59,25 @@ class CustomerSettingsPage extends StatelessWidget {
           ),
 
           // Terms and Conditions
-          const MyContainer(
+          MyContainer(
             string: 'Terms and Conditions',
-            widget: Icon(Icons.arrow_forward_ios_outlined),
+            widget: GestureDetector(child: const Icon(Icons.arrow_forward_ios_outlined),onTap: (){
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const TermsConditionsPage()),
+              );
+            },),
           ),
 
           // Privacy Policy
-          const MyContainer(
+          MyContainer(
             string: 'Privacy Policy',
-            widget: Icon(Icons.arrow_forward_ios_outlined),
+            widget: GestureDetector(child: const Icon(Icons.arrow_forward_ios_outlined),onTap: (){
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PrivacyPolicyPage()),
+              );
+            },),
           ),
         ],
       ),

@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:final_app/pages/customer/customer_delivery_page.dart';
+import 'package:final_app/pages/customer/delivery_status_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'repair_status_page.dart';
+import 'pickup_status_page.dart';
 import 'customer_repair_page.dart';
 
 class CustomerContentPage extends StatefulWidget {
@@ -162,12 +163,12 @@ class _CustomerContentPageState extends State<CustomerContentPage> {
           buildCard(
             "PICKUP",
             'Schedule a pickup for your luggage after your repair request has been approved',
-            RepairStatusPage(repairRequests: repairRequests),
+            PickupStatusPage(repairRequests: repairRequests),
           ),
           buildCard(
             "DELIVERY",
             'Get your repaired luggage delivered back to you',
-            const CustomerDeliveryPage(),
+            DeliveryStatusPage(repairRequests: repairRequests),
           ),
         ],
       ),

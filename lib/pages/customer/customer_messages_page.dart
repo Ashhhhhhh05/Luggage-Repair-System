@@ -18,7 +18,7 @@ class CustomerMessagesPage extends StatelessWidget {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.grey,
         elevation: 0,
-        title: const Text("Messages"),
+        title: Text("Messages", style: TextStyle(fontFamily: "Mont",color: Theme.of(context).colorScheme.primary),),
         automaticallyImplyLeading: false,
       ),
       body: _buildUserList(),

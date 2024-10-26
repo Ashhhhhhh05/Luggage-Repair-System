@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 class ChatBubble extends StatelessWidget {
   final String message;
   final bool isCurrentUser;
-  final String timestamp; // Add timestamp as a parameter
+  final String timestamp;
 
   const ChatBubble({
     super.key,
     required this.message,
     required this.isCurrentUser,
-    required this.timestamp, // Add timestamp to the constructor
+    required this.timestamp,
   });
 
   @override
@@ -19,7 +19,7 @@ class ChatBubble extends StatelessWidget {
       children: [
         Container(
           decoration: BoxDecoration(
-            color: isCurrentUser ? Colors.green : Colors.blue,
+            color: isCurrentUser ? Colors.green : Colors.blue[900],
             borderRadius: BorderRadius.circular(12),
           ),
           padding: const EdgeInsets.all(16),
@@ -28,6 +28,7 @@ class ChatBubble extends StatelessWidget {
             message,
             style: const TextStyle(
               color: Colors.white,
+              fontFamily: "Mont",
             ),
           ),
         ),

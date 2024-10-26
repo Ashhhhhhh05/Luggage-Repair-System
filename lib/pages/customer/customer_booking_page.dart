@@ -13,6 +13,7 @@ class CustomerBookingPage extends StatefulWidget {
 class _CustomerBookingPageState extends State<CustomerBookingPage> {
   List<Booking> bookings = [];
   String filter = 'All';
+  final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final User? currentUser = FirebaseAuth.instance.currentUser;
@@ -40,7 +41,12 @@ class _CustomerBookingPageState extends State<CustomerBookingPage> {
               DateFormat('yyyy-MM-dd HH:mm').format(dateTime);
 
           return Booking(
+            name: data['customerName'] ?? 'Unknown',
+            surname: data['customerSurname'] ?? 'Unknown',
+            email: data['customerEmail'] ?? 'Unknown',
             serviceType: 'Repair',
+            brand: data['brand'] ?? 'Unknown',
+            description: data['description'] ?? 'Unknown',
             date: formattedDate,
             status: data['status'] ?? 'Unknown',
             id: doc.id,
@@ -70,13 +76,11 @@ class _CustomerBookingPageState extends State<CustomerBookingPage> {
     }).toList();
 
     return Scaffold(
+        key: _scaffoldMessengerKey,
         body: Center(
-      // Center the content horizontally
       child: Container(
         constraints: const BoxConstraints(maxWidth: 1000),
-        // Set maximum width
         padding: const EdgeInsets.all(16.0),
-        // Add some padding around the container
         child: Column(
           children: [
             Padding(
@@ -154,6 +158,7 @@ class _CustomerBookingPageState extends State<CustomerBookingPage> {
             color: filter == filterName ? Colors.white : Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 16,
+            fontFamily: "Mont",
           ),
         ),
       ),
@@ -165,15 +170,22 @@ class _CustomerBookingPageState extends State<CustomerBookingPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Booking Details'),
+          title: Text(
+            'Booking Details',
+            style: TextStyle(fontFamily: "Mont", color: Theme.of(context).colorScheme.primary),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Service Type: ${booking.serviceType}'),
-              Text('Date: ${booking.date}'),
-              Text('Status: ${booking.status}'),
-              Text('ID: ${booking.id}'),
+              Text('Service Type: ${booking.serviceType}',
+                  style: const TextStyle(fontFamily: "Mont")),
+              Text('Date: ${booking.date}',
+                  style: const TextStyle(fontFamily: "Mont")),
+              Text('Status: ${booking.status}',
+                  style: const TextStyle(fontFamily: "Mont")),
+              Text('ID: ${booking.id}',
+                  style: const TextStyle(fontFamily: "Mont")),
             ],
           ),
           actions: [
@@ -181,9 +193,9 @@ class _CustomerBookingPageState extends State<CustomerBookingPage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text(
+              child: Text(
                 'Close',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: Theme.of(context).colorScheme.primary, fontFamily: "Mont"),
               ),
             ),
           ],
@@ -193,38 +205,67 @@ class _CustomerBookingPageState extends State<CustomerBookingPage> {
   }
 
   void _confirmCancelBooking(int index) {
+    // Check if the booking status is already 'Cancelled'
+    if (bookings[index].status == 'Cancelled') {
+      showDialog(context: context, builder: (BuildContext context){
+        return const AlertDialog(
+          content: Text('This booking has already been cancelled.', style: TextStyle(fontFamily: "Mont"),),
+        );
+      });
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text(
+          title: Text(
             'Cancel Booking',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Theme.of(context).colorScheme.primary, fontFamily: "Mont"),
           ),
           content: const Text(
             'Are you sure you want to cancel this service?',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.white, fontFamily: "Mont"),
           ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text(
+              child: Text(
                 'No',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: Theme.of(context).colorScheme.primary, fontFamily: "Mont"),
               ),
             ),
             TextButton(
-              onPressed: () {
-                setState(() {
-                  bookings.removeAt(index);
-                });
+              onPressed: () async {
                 Navigator.of(context).pop();
+                try {
+                  // Update the booking's status to 'Cancelled' in Firestore
+                  String bookingId = bookings[index].id;
+                  await _firestore.collection('repair_request').doc(bookingId).update({
+                    'status': 'Cancelled',
+                  });
+
+                  // Update the status in the local bookings list
+                  setState(() {
+                    bookings[index].status = 'Cancelled';
+                  });
+
+                  // Notify the user of success
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Booking cancelled successfully.')),
+                  );
+                } catch (e) {
+                  // Handle any errors
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error cancelling booking: $e')),
+                  );
+                }
               },
-              child: const Text(
+              child: Text(
                 'Yes',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: Theme.of(context).colorScheme.primary, fontFamily: "Mont"),
               ),
             ),
           ],
@@ -239,6 +280,7 @@ class BookingCard extends StatelessWidget {
   final VoidCallback? onViewDetails;
   final VoidCallback? onReschedule;
   final VoidCallback? onCancel;
+  final VoidCallback? onPayment;
 
   const BookingCard({
     super.key,
@@ -246,6 +288,7 @@ class BookingCard extends StatelessWidget {
     this.onViewDetails,
     this.onReschedule,
     this.onCancel,
+    this.onPayment,
   });
 
   @override
@@ -272,35 +315,27 @@ class BookingCard extends StatelessWidget {
             Text(
               'Service Type: ${booking.serviceType}',
               style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20.0,
-                color: Colors.white,
-              ),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20.0,
+                  color: Colors.white,
+                  fontFamily: "Mont"),
             ),
             const SizedBox(height: 8.0),
             Text('Request Date: ${booking.date}',
                 style: const TextStyle(
-                  fontSize: 16.0,
-                  color: Colors.white,
-                )),
+                    fontSize: 16.0, color: Colors.white, fontFamily: "Mont")),
             const SizedBox(height: 8.0),
             Text('Status: ${booking.status}',
                 style: const TextStyle(
-                  fontSize: 16.0,
-                  color: Colors.white,
-                )),
+                    fontSize: 16.0, color: Colors.white, fontFamily: "Mont")),
             const SizedBox(height: 8.0),
             Text('Request ID: ${booking.id}',
                 style: const TextStyle(
-                  fontSize: 16.0,
-                  color: Colors.white,
-                )),
+                    fontSize: 16.0, color: Colors.white, fontFamily: "Mont")),
             const SizedBox(height: 8.0),
             Text('Fee: ${booking.fee}',
                 style: const TextStyle(
-                  fontSize: 16.0,
-                  color: Colors.white,
-                )),
+                    fontSize: 16.0, color: Colors.white, fontFamily: "Mont")),
             const SizedBox(height: 16.0),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -366,6 +401,27 @@ class BookingCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                // Payment button, shown only if onPayment is provided
+                if (onPayment != null)
+                  SizedBox(
+                    width: 95,
+                    child: ElevatedButton(
+                      onPressed: onPayment,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green[700],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text(
+                        'Pay Now',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ],
@@ -376,14 +432,24 @@ class BookingCard extends StatelessWidget {
 }
 
 class Booking {
+  final String name;
+  final String surname;
+  final String email;
   final String serviceType;
+  final String brand;
+  final String description;
   final String date;
-  final String status;
+  String status;
   final String id;
   final String fee;
 
   Booking({
+    required this.name,
+    required this.surname,
+    required this.email,
     required this.serviceType,
+    required this.brand,
+    required this.description,
     required this.date,
     required this.status,
     required this.id,

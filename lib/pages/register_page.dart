@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:final_app/components/my_button.dart';
 import 'package:final_app/components/my_textfield.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 
 class RegisterPage extends StatefulWidget {
   final Function()? onTap;
@@ -15,18 +16,67 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  // Firestore instance
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  //text-editing controllers
-  final nameController = TextEditingController();
-  final surnameController = TextEditingController();
+  // Text-editing controllers
+  final fullNameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+  String? phoneNumber;
 
-  //sign user in method
+  // Method to check if full name contains only letters and spaces
+  bool isFullNameValid(String fullName) {
+    final nameRegExp = RegExp(r'^[a-zA-Z\s]+$');
+    return nameRegExp.hasMatch(fullName);
+  }
+
+  // Method to check if email is valid
+  bool isEmailValid(String email) {
+    final emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    return emailRegExp.hasMatch(email);
+  }
+
+  // Method to check if password is secure
+  bool isPasswordStrong(String password) {
+    final passwordRegExp = RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$');
+    return passwordRegExp.hasMatch(password);
+  }
+
+  // Register user method
   void signUserUp() async {
-    //show loading icon
+    // Check if any fields are empty
+    if (fullNameController.text.trim().isEmpty ||
+        emailController.text.trim().isEmpty ||
+        passwordController.text.isEmpty ||
+        confirmPasswordController.text.isEmpty ||
+        phoneNumber == null ||
+        phoneNumber!.isEmpty) {
+      showErrorMessage("All fields are required!");
+      return;
+    }
+
+    // Check if full name is valid
+    if (!isFullNameValid(fullNameController.text.trim())) {
+      showErrorMessage("Full name should only contain letters and spaces!");
+      return;
+    }
+
+    // Check if email is valid
+    if (!isEmailValid(emailController.text.trim())) {
+      showErrorMessage("Please enter a valid email address!");
+      return;
+    }
+
+    // Check if password is strong
+    if (!isPasswordStrong(passwordController.text)) {
+      showErrorMessage(
+          "Password must be at least 8 characters and contain letters and numbers.");
+      return;
+    }
+
+    // Show loading icon
     showDialog(
         context: context,
         barrierDismissible: false,
@@ -36,9 +86,9 @@ class _RegisterPageState extends State<RegisterPage> {
           );
         });
 
-    //try creating the user
+    // Try creating the user
     try {
-      //check if password is confirmed
+      // Check if password matches confirmation field
       if (passwordController.text == confirmPasswordController.text) {
         UserCredential userCredential =
             await FirebaseAuth.instance.createUserWithEmailAndPassword(
@@ -46,7 +96,7 @@ class _RegisterPageState extends State<RegisterPage> {
           password: passwordController.text,
         );
 
-        // store user info in a separate doc
+        // Store user info in a separate doc for messaging
         _firestore.collection("chats").doc(userCredential.user!.uid).set(
           {
             'uid': userCredential.user!.uid,
@@ -55,36 +105,36 @@ class _RegisterPageState extends State<RegisterPage> {
           },
         );
 
-        //Get user id
+        // Get user id
         String uid = userCredential.user!.uid;
 
-        //Pop loading icon + save customers role in Firestore
+        // Pop loading icon + save customer details in Firestore
         Navigator.pop(context);
         await FirebaseFirestore.instance.collection('users').doc(uid).set({
           'role': 'customer',
-          'firstName': nameController.text.trim(),
-          'Surname': surnameController.text.trim(),
+          'fullName': fullNameController.text.trim(),
           'email': emailController.text.trim(),
+          'phone': phoneNumber,
         });
 
-        // Navigate to Homepage
+        // Navigate to Homepage if successful
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const CustomerHomeNav()),
         );
       } else {
-        //pop loading icon + show error message, passwords don't match
+        // Pop loading icon + show error message, passwords don't match
         Navigator.pop(context);
         showErrorMessage("Passwords do not match!");
       }
     } on FirebaseAuthException catch (e) {
-      //pop loading + show error message
+      // Pop loading icon + show error message
       Navigator.pop(context);
       showErrorMessage(e.code);
     }
   }
 
-  //show error to user
+  // Show error to user
   void showErrorMessage(String message) {
     showDialog(
       context: context,
@@ -116,7 +166,7 @@ class _RegisterPageState extends State<RegisterPage> {
         )),
         child: Column(
           children: [
-            // show background
+            // Show background image behind container
             const Expanded(
               flex: 1,
               child: SizedBox(
@@ -133,12 +183,14 @@ class _RegisterPageState extends State<RegisterPage> {
                     topLeft: Radius.circular(50.0),
                     topRight: Radius.circular(50.0),
                   ),
-                  boxShadow: const [BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 5.0,
-                    spreadRadius: 2.0,
-                    offset: Offset(0, 5),
-                  )],
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 5.0,
+                      spreadRadius: 2.0,
+                      offset: Offset(0, 5),
+                    )
+                  ],
                 ),
                 child: SingleChildScrollView(
                   child: SafeArea(
@@ -147,39 +199,33 @@ class _RegisterPageState extends State<RegisterPage> {
                         children: [
                           const SizedBox(height: 5),
 
-                          //logo
+                          // Logo
                           Icon(Icons.shopping_bag,
                               size: 80,
-                              color: Theme.of(context).colorScheme.tertiary),
+                              color: Theme.of(context).colorScheme.primary),
 
                           const SizedBox(height: 5),
 
+                          // Register Message
                           Text(
                             "Let's create you an account!",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
-                              color: Theme.of(context).colorScheme.tertiary,
+                              color: Theme.of(context).colorScheme.primary,
+                              fontFamily: "Mont",
                             ),
                           ),
 
-                          //name text field
+                          // Full name text field
                           MyTextField(
-                            controller: nameController,
-                            label: 'First Name',
+                            controller: fullNameController,
+                            label: 'Full Name',
                             obscureText: false,
                             myIcon: Icons.person_outline,
                           ),
 
-                          //surname text field
-                          MyTextField(
-                            controller: surnameController,
-                            label: 'Surname',
-                            obscureText: false,
-                            myIcon: Icons.person_outline,
-                          ),
-
-                          //email text field
+                          // Email text field
                           MyTextField(
                             controller: emailController,
                             label: 'Email',
@@ -187,7 +233,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             myIcon: Icons.email_outlined,
                           ),
 
-                          //password text field
+                          // Password text field
                           MyTextField(
                             controller: passwordController,
                             label: 'Password',
@@ -196,7 +242,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             showPasswordToggle: true,
                           ),
 
-                          //confirm password text field
+                          // Confirm password text field
                           MyTextField(
                             controller: confirmPasswordController,
                             label: 'Confirm Password',
@@ -205,21 +251,43 @@ class _RegisterPageState extends State<RegisterPage> {
                             showPasswordToggle: true,
                           ),
 
+                          const SizedBox(height: 5),
+
+                          // Phone Field
+                          IntlPhoneField(
+                            controller:
+                                TextEditingController(text: phoneNumber),
+                            initialCountryCode: 'ZA',
+                            decoration: InputDecoration(
+                              constraints: const BoxConstraints(maxWidth: 350),
+                              labelText: 'Phone Number',
+                              labelStyle: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontFamily: "Mont",
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            onChanged: (phone) {
+                              phoneNumber = phone.completeNumber;
+                            },
+                          ),
+
                           const SizedBox(height: 10),
 
-                          //signIn button
+                          // SignUp button
                           MyButton(
-                            color: Theme.of(context).colorScheme.tertiary,
+                            color: Theme.of(context).colorScheme.primary,
                             onTap: signUserUp,
-                            child: Center(
+                            child: const Center(
                               child: Text(
                                 "Sign Up",
                                 style: TextStyle(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .inversePrimary,
+                                  color: Colors.white,
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
+                                  fontFamily: "Mont",
                                 ),
                               ),
                             ),
@@ -227,7 +295,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
                           const SizedBox(height: 15),
 
-                          //already a member? Login here
+                          // Already a member? Login here
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -236,16 +304,19 @@ class _RegisterPageState extends State<RegisterPage> {
                                 style: TextStyle(
                                   color: Theme.of(context).colorScheme.tertiary,
                                   fontWeight: FontWeight.bold,
+                                  fontFamily: "Mont",
                                 ),
                               ),
                               const SizedBox(width: 4),
                               GestureDetector(
                                 onTap: widget.onTap,
-                                child: const Text(
+                                child: Text(
                                   'Login here',
                                   style: TextStyle(
-                                    color: Colors.blue,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
                                     fontWeight: FontWeight.bold,
+                                    fontFamily: "Mont",
                                   ),
                                 ),
                               ),

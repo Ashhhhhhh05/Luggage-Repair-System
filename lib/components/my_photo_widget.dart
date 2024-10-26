@@ -123,6 +123,7 @@ class _MyPhotoWidgetState extends State<MyPhotoWidget> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.blue[900],
+                fontFamily: "Mont",
               ),
             ),
           ],

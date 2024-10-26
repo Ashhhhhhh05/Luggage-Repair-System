@@ -40,24 +40,44 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
+  // Show error to user
+  void showErrorMessage(String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.deepPurple,
+          title: Center(
+            child: Text(
+              message,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   // send message
   void sendMessage() async {
-    if (messageController.text.isNotEmpty) {
+    if (messageController.text.trim().isNotEmpty) {
       // send the message
       await _chatService.sendMessage(
           widget.receiverID, messageController.text, Timestamp.now());
 
       // clear text controller
       messageController.clear();
+      scrollDown();
+    }else{
+      showErrorMessage("Message cannot be empty");
     }
-    scrollDown();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.receiverEmail),
+        title: Text(widget.receiverEmail, style: TextStyle(fontFamily: "Mont", color: Theme.of(context).colorScheme.primary),),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.grey,

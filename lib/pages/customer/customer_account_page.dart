@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
@@ -14,14 +15,15 @@ class CustomerAccountPage extends StatefulWidget {
 
 class _CustomerAccountPageState extends State<CustomerAccountPage> {
   final user = FirebaseAuth.instance.currentUser!;
-  TextEditingController _nameController = TextEditingController();
-  TextEditingController _phoneController = TextEditingController();
-  TextEditingController _emailController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
 
-  String firstName = "";
-  String surname = "";
-  String _phoneNumber = "+27631634734";
+  String fullName = "";
+  String _phoneNumber = "";
   String _email = "";
+  String _profileImageUrl = "";
+  File? _selectedImage;
 
   @override
   void initState() {
@@ -38,18 +40,73 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
           .get();
       if (userDoc.exists) {
         setState(() {
-          firstName =
-              userDoc['firstName'] ?? ''; // Get first name from Firestore
-          surname = userDoc['Surname'] ?? ''; // Get surname from Firestore
+          fullName =
+              userDoc['fullName'] ?? '';
+          _phoneNumber = userDoc['phone'] ?? '';
         });
       }
     } catch (e) {
-      // Handle error (optional)
       print("Error fetching user data: $e");
     }
   }
 
-  File? _selectedImage;
+  Future<void> updateUserData(String firstName) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update({
+        'firstName': firstName,
+      });
+      _showSnackBar("User data successfully updated.", Colors.green[900]!);
+    } catch (e) {
+      print("Error updating user data: $e");
+      _showSnackBar("Failed to update user data.", Colors.red[900]!);
+    }
+  }
+
+  Future<void> updateUserPhoneNumber(String phoneNumber) async {
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+        'phone': phoneNumber,
+      });
+    } catch (e) {
+      print("Error updating phone number: $e");
+      _showSnackBar("Failed to update phone number.", Colors.red[900]!);
+    }
+  }
+
+
+  Future<void> uploadProfileImage() async {
+    if (_selectedImage == null) return;
+
+    try {
+      // Create a reference to the Firebase Storage location
+      Reference ref = FirebaseStorage.instance
+          .ref()
+          .child('profile_images/${user.uid}.jpg');
+
+      // Upload the image file
+      await ref.putFile(_selectedImage!);
+
+      // Get the download URL
+      String downloadUrl = await ref.getDownloadURL();
+
+      // Update Firestore with the new profile image URL
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+        'profileImageUrl': downloadUrl,
+      });
+
+      setState(() {
+        _profileImageUrl = downloadUrl; // Update the local state with the new URL
+      });
+
+      _showSnackBar("Profile picture uploaded successfully.", Colors.green[900]!);
+    } catch (e) {
+      print("Error uploading image: $e");
+      _showSnackBar("Failed to upload profile picture.", Colors.red[900]!);
+    }
+  }
 
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
@@ -60,6 +117,7 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
       setState(() {
         _selectedImage = File(pickedFile.path);
       });
+      await uploadProfileImage();
     }
   }
 
@@ -87,15 +145,17 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
                 CircleAvatar(
                   radius: 80,
                   backgroundColor: Colors.grey[300],
-                  backgroundImage: _selectedImage != null
+                  backgroundImage: _profileImageUrl.isNotEmpty
+                      ? NetworkImage(_profileImageUrl)
+                      : _selectedImage != null
                       ? FileImage(_selectedImage!)
                       : null,
-                  child: _selectedImage == null
+                  child: _selectedImage == null && _profileImageUrl.isEmpty
                       ? const Icon(
-                          Icons.person,
-                          color: Colors.white,
-                          size: 80,
-                        )
+                    Icons.person,
+                    color: Colors.white,
+                    size: 80,
+                  )
                       : null,
                 ),
                 Positioned(
@@ -113,7 +173,7 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
                           builder: (context) => buildBottomSheet());
                     },
                     child: CircleAvatar(
-                      backgroundColor: Colors.blue[900],
+                      backgroundColor: Theme.of(context).colorScheme.primary,
                       radius: 25,
                       child:
                           const Icon(Icons.edit, size: 20, color: Colors.white),
@@ -129,7 +189,7 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
           Text(
             "User Info",
             style: TextStyle(
-              color: Colors.blue[900]!,
+              color: Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.bold,
               fontSize: 30,
               fontFamily: "nunito",
@@ -139,8 +199,8 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
             height: 10,
           ),
           _buildCustomTile(
-            title: "Name",
-            subtitle: "$firstName" + " " + "$surname",
+            title: "Full Name",
+            subtitle: "$fullName",
             icon: Icons.person,
             onTap: () {
               _showUpdateDialog(
@@ -149,11 +209,10 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
                 onSave: () {
                   if (_nameController.text.trim().isNotEmpty) {
                     setState(() {
-                      firstName = _nameController.text.trim();
+                      fullName = _nameController.text.trim();
                     });
                     Navigator.of(context).pop();
-                    _showSnackBar(
-                        "Name successfully updated.", Colors.green[900]!);
+                    updateUserData(fullName);
                   } else {
                     _showSnackBar("Name cannot be empty.", Colors.red[900]!);
                   }
@@ -170,12 +229,17 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
                 title: "Update your Phone Number",
                 isPhoneField: true,
                 controller: _phoneController,
-                onSave: () {
-                  if (isPhoneNumberValid(_phoneController.text)) {
+                onSave: () async{
+                  if (_phoneController.text.trim().isNotEmpty) {
+                    String formattedPhoneNumber = _phoneController.text.trim();
                     setState(() {
-                      _phoneNumber = "+27${_phoneController.text}";
+                      _phoneNumber = "+27$formattedPhoneNumber";
                     });
                     Navigator.pop(context);
+
+                    // Update Firestore with the new phone number
+                    await updateUserPhoneNumber(formattedPhoneNumber);
+
                     _showSnackBar("Phone number successfully updated.",
                         Colors.green[900]!);
                   } else {
@@ -217,7 +281,7 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
 
   Widget buildBottomSheet() {
     return Container(
-      padding: EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16.0),
       height: 200,
       child: Column(
         children: [
@@ -227,9 +291,9 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
                 fontFamily: "nunito",
-                color: Colors.blue[900]),
+                color: Theme.of(context).colorScheme.primary),
           ),
-          SizedBox(
+          const SizedBox(
             height: 20,
           ),
           Row(
@@ -241,7 +305,7 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
                     child: CircleAvatar(
                       radius: 30,
                       backgroundColor: Colors.blue[900],
-                      child: Icon(Icons.photo_library_outlined,
+                      child: const Icon(Icons.photo_library_outlined,
                           size: 28, color: Colors.white),
                     ),
                     onTap: () async {
@@ -249,18 +313,18 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
                       Navigator.pop(context);
                     },
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     "Gallery",
                     style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         fontFamily: "nunito",
-                        color: Colors.blue[900]),
+                        color: Theme.of(context).colorScheme.primary),
                   ),
                 ],
               ),
-              SizedBox(
+              const SizedBox(
                 width: 28,
               ),
               Column(
@@ -269,14 +333,14 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
                     child: CircleAvatar(
                       radius: 30,
                       backgroundColor: Colors.blue[900],
-                      child: Icon(Icons.camera_alt_outlined,
+                      child: const Icon(Icons.camera_alt_outlined,
                           size: 28, color: Colors.white),
                     ),
                     onTap: () async {
-                      final ImagePicker _picker = ImagePicker();
+                      final ImagePicker picker = ImagePicker();
 
                       final XFile? image =
-                          await _picker.pickImage(source: ImageSource.camera);
+                          await picker.pickImage(source: ImageSource.camera);
                       if (image != null) {
                         setState(() {
                           _selectedImage = File(image.path);
@@ -285,18 +349,18 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
                       Navigator.pop(context);
                     },
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     "Camera",
                     style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         fontFamily: "nunito",
-                        color: Colors.blue[900]),
+                        color: Theme.of(context).colorScheme.primary),
                   ),
                 ],
               ),
-              SizedBox(
+              const SizedBox(
                 width: 28,
               ),
               Column(
@@ -305,7 +369,7 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
                     child: CircleAvatar(
                       radius: 30,
                       backgroundColor: Colors.blue[900],
-                      child: Icon(Icons.delete_outline,
+                      child: const Icon(Icons.delete_outline,
                           size: 28, color: Colors.white),
                     ),
                     onTap: () {
@@ -322,7 +386,7 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         fontFamily: "nunito",
-                        color: Colors.blue[900]),
+                        color: Theme.of(context).colorScheme.primary),
                   ),
                 ],
               ),
@@ -389,7 +453,7 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
           title: Text(
             title,
             style: TextStyle(
-                color: Colors.blue[900],
+                color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.bold,
                 fontFamily: "Mont",
                 fontSize: 18),
@@ -414,7 +478,7 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
               child: Text(
                 "Cancel",
                 style: TextStyle(
-                    color: Colors.blue[900],
+                    color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.bold,
                     fontFamily: "nunito"),
               ),
@@ -424,7 +488,7 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
               child: Text(
                 "Save",
                 style: TextStyle(
-                    color: Colors.blue[900],
+                    color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.bold,
                     fontFamily: "nunito"),
               ),

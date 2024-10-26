@@ -187,6 +187,7 @@ class _ProofOfPurchaseWidgetState extends State<ProofOfPurchaseWidget> {
             style: TextStyle(
               color: Colors.grey[700],
               fontStyle: FontStyle.italic,
+              fontFamily: "Mont",
             ),
           ),
       ],

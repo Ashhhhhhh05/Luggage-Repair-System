@@ -27,6 +27,7 @@ class _CustomerRepairPageState extends State<CustomerRepairPage> {
   String customerFirstName = "";
   String customerSurname = "";
   String customerEmail = "";
+  String paymentMade = "no";
   final TextEditingController _brandController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -56,6 +57,24 @@ class _CustomerRepairPageState extends State<CustomerRepairPage> {
     }
   }
 
+  // Show error to user
+  void showErrorMessage(String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.deepPurple,
+          title: Center(
+            child: Text(
+              message,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   // Method to submit the form data to Firestore
   Future<void> submitForm() async {
     if (!formKey.currentState!.validate()) {
@@ -64,46 +83,33 @@ class _CustomerRepairPageState extends State<CustomerRepairPage> {
     }
 
     if (_selectedImages.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least one image.')),
-      );
+      showErrorMessage('Please select at least one image.');
       return;
     }
 
     // Ensure the user has selected a warranty option
     if (warrantyOption == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Please select whether you have a warranty.')),
-      );
+      showErrorMessage('Please select whether you have a warranty.');
       return;
     }
 
     if (proofImage == null && warrantyOption == 'Yes, it is under warranty') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please upload proof of purchase.')),
-      );
+      showErrorMessage('Please upload proof of purchase.');
       return;
     }
 
     if (selectedLuggageType == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a type of luggage.')),
-      );
+      showErrorMessage('Please select a type of luggage.');
       return;
     }
 
     if (_brandController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter the brand of luggage.')),
-      );
+      showErrorMessage('Please enter the brand of luggage.');
       return;
     }
 
     if (_descriptionController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please provide a description.')),
-      );
+      showErrorMessage('Please provide a description.');
       return;
     }
 
@@ -201,6 +207,7 @@ class _CustomerRepairPageState extends State<CustomerRepairPage> {
       'under_warranty': warrantyOption,
       'proofImage': proofImageUrl,
       'fee': fee,
+      'payment_made': paymentMade,
     };
 
     try {
@@ -336,7 +343,7 @@ class _CustomerRepairPageState extends State<CustomerRepairPage> {
             Text(
               "Submit Repair Request",
               style: TextStyle(
-                color: Colors.blue[900],
+                color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.bold,
                 fontSize: 30,
                 fontFamily: "june",
@@ -367,6 +374,7 @@ class _CustomerRepairPageState extends State<CustomerRepairPage> {
                     style: TextStyle(
                         color: Theme.of(context).colorScheme.tertiary,
                         fontWeight: FontWeight.bold,
+                        fontFamily: "Mont",
                         fontSize: 16),
                     items: const [
                       DropdownMenuItem(value: '1', child: Text('Suitcase')),
@@ -399,6 +407,7 @@ class _CustomerRepairPageState extends State<CustomerRepairPage> {
                       color: Theme.of(context).colorScheme.tertiary,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      fontFamily: "Mont",
                     ),
                   ),
 
@@ -413,6 +422,7 @@ class _CustomerRepairPageState extends State<CustomerRepairPage> {
                       color: Theme.of(context).colorScheme.tertiary,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      fontFamily: "Mont",
                     ),
                     maxLines: 4,
                   ),
@@ -430,6 +440,7 @@ class _CustomerRepairPageState extends State<CustomerRepairPage> {
                                 option,
                                 style: TextStyle(
                                   color: Theme.of(context).colorScheme.tertiary,
+                                  fontFamily: "Mont",
                                 ),
                               ),
                             ))
@@ -469,6 +480,7 @@ class _CustomerRepairPageState extends State<CustomerRepairPage> {
                             color: Colors.white,
                             fontSize: 19,
                             fontWeight: FontWeight.bold,
+                            fontFamily: "Mont",
                           ),
                         ),
                       ),

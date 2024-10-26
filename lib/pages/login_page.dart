@@ -15,16 +15,23 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  // Firestore instance
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  //text-editing controllers
+  // Text-editing controllers
   final emailController = TextEditingController();
-
   final passwordController = TextEditingController();
 
-  //sign user in method
+  // Sign user in method
   void signUserIn() async {
-    //show loading icon
+    // Verify all fields are filled
+    if(emailController.text.trim().isEmpty ||
+        passwordController.text.trim().isEmpty){
+      showErrorMessage("All fields are required!");
+      return;
+    }
+
+    // Show loading icon
     showDialog(
         context: context,
         builder: (context) {
@@ -33,29 +40,29 @@ class _LoginPageState extends State<LoginPage> {
           );
         });
 
-    //try sign in
+    // Try sign in
     try {
       UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text,
       );
-      // store user info in a separate doc
+      // Store user info in a separate doc for messaging feature
       _firestore.collection("chats").doc(userCredential.user!.uid).update(
         {
           'uid': userCredential.user!.uid, 'email': emailController.text.trim(),
         },
       );
-      //pop the loading icon
+      // Pop the loading icon
       Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
-      //pop the loading icon
+      // Pop the loading icon
       Navigator.pop(context);
-      //show error message
+      // Show error message
       showErrorMessage(e.code);
     }
   }
 
-  //show error to user
+  // Show error to user
   void showErrorMessage(String message) {
     showDialog(
       context: context,
@@ -80,7 +87,7 @@ class _LoginPageState extends State<LoginPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(
-          color: Theme.of(context).colorScheme.tertiary,
+          color: Theme.of(context).colorScheme.primary,
         ),
       ),
       extendBodyBehindAppBar: true,
@@ -129,23 +136,24 @@ class _LoginPageState extends State<LoginPage> {
                           Icon(
                             Icons.shopping_bag,
                             size: 100,
-                            color: Theme.of(context).colorScheme.tertiary,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
 
-                          //welcome back
+                          // Welcome back message
                           Text(
                             "Welcome back, you've been missed!",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 19,
+                              fontSize: 18,
+                              fontFamily: "Mont",
                               color:
-                                  Theme.of(context).colorScheme.tertiary,
+                                  Theme.of(context).colorScheme.primary,
                             ),
                           ),
 
                           const SizedBox(height: 25),
 
-                          //email text field
+                          // Email text field
                           MyTextField(
                             controller: emailController,
                             label: 'Email',
@@ -153,7 +161,7 @@ class _LoginPageState extends State<LoginPage> {
                             myIcon: Icons.email_outlined,
                           ),
 
-                          //password text field
+                          // Password text field
                           MyTextField(
                             controller: passwordController,
                             label: 'Password',
@@ -162,7 +170,7 @@ class _LoginPageState extends State<LoginPage> {
                             showPasswordToggle: true,
                           ),
 
-                          //forgot password
+                          // Forgot password
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 25),
                             child: Row(
@@ -179,11 +187,12 @@ class _LoginPageState extends State<LoginPage> {
                                       ),
                                     );
                                   },
-                                  child: const Text(
+                                  child: Text(
                                     "Forgot Password?",
                                     style: TextStyle(
-                                      color: Color(0xFF416FDF),
+                                      color: Theme.of(context).colorScheme.primary,
                                       fontWeight: FontWeight.bold,
+                                        fontFamily: "Mont"
                                     ),
                                   ),
                                 ),
@@ -193,17 +202,18 @@ class _LoginPageState extends State<LoginPage> {
 
                           const SizedBox(height: 15),
 
-                          //signIn button
+                          // SignIn button
                           MyButton(
-                            color: Theme.of(context).colorScheme.tertiary,
+                            color: Theme.of(context).colorScheme.primary,
                             onTap: signUserIn,
-                            child: Center(
+                            child: const Center(
                               child: Text(
                                 "Sign In",
                                 style: TextStyle(
-                                  color: Theme.of(context).colorScheme.inversePrimary,
+                                  color: Colors.white,
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
+                                  fontFamily: "Mont",
                                 ),
                               ),
                             ),
@@ -211,7 +221,7 @@ class _LoginPageState extends State<LoginPage> {
 
                           const SizedBox(height: 15),
 
-                          //not a member? signUp here
+                          // Not a member? signUp here -> register_page
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -219,6 +229,7 @@ class _LoginPageState extends State<LoginPage> {
                                 'Not a member?',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
+                                    fontFamily: "Mont",
                                   color: Theme.of(context)
                                       .colorScheme
                                       .tertiary,
@@ -227,10 +238,11 @@ class _LoginPageState extends State<LoginPage> {
                               const SizedBox(width: 4),
                               GestureDetector(
                                 onTap: widget.onTap,
-                                child: const Text(
+                                child: Text(
                                   'Register here',
                                   style: TextStyle(
-                                    color: Color(0xFF416FDF),
+                                    color: Theme.of(context).colorScheme.primary,
+                                    fontFamily: "Mont",
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),

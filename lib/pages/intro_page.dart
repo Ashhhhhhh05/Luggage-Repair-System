@@ -1,9 +1,14 @@
 import 'package:final_app/components/intro_button.dart';
 import 'package:flutter/material.dart';
 
-class IntroPage extends StatelessWidget {
+class IntroPage extends StatefulWidget {
   const IntroPage({super.key});
 
+  @override
+  State<IntroPage> createState() => _IntroPageState();
+}
+
+class _IntroPageState extends State<IntroPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -12,6 +17,7 @@ class IntroPage extends StatelessWidget {
             width: double.infinity,
             height: MediaQuery.of(context).size.height,
             decoration: const BoxDecoration(
+                // Set background image
                 image: DecorationImage(
               image: AssetImage('lib/assets/home_bg.jpeg'),
               fit: BoxFit.cover,
@@ -22,29 +28,30 @@ class IntroPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   //logo
-                  const Icon(
+                  Icon(
                     Icons.shopping_bag,
                     size: 95,
-                    color: Colors.black,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
 
                   const SizedBox(height: 10),
 
-                  //title
-                  const Text(
+                  // Title
+                  Text(
                     "Welcome to Matrix!",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 30,
-                      color: Colors.black,
+                      color: Theme.of(context).colorScheme.primary,
+                      fontFamily: "Mont",
                     ),
                   ),
 
                   const SizedBox(height: 20),
 
-                  //button
+                  // Navigation Button
                   IntroButton(
-                    color: Colors.black,
+                    color: Theme.of(context).colorScheme.primary,
                     onTap: () => Navigator.pushNamed(context, '/auth_page'),
                     child: const Icon(
                       Icons.arrow_forward,

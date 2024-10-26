@@ -40,7 +40,7 @@ class _MyTextFieldState extends State<MyTextField> {
     return Padding(
       padding:  const EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
       child: TextFormField(
-        style: TextStyle(color: Theme.of(context).colorScheme.tertiary),
+        style: TextStyle(color: Theme.of(context).colorScheme.tertiary,fontFamily: "Mont",),
         controller: widget.controller,
         obscureText: isObscure,
         decoration: InputDecoration(
@@ -49,6 +49,7 @@ class _MyTextFieldState extends State<MyTextField> {
             style: TextStyle(
               color: Theme.of(context).colorScheme.tertiary,
               fontWeight: FontWeight.bold,
+              fontFamily: "Mont",
             ),
           ),
           prefixIcon: Icon(

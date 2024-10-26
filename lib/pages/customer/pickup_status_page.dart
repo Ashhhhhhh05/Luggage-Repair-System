@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-class RepairStatusPage extends StatelessWidget {
+class PickupStatusPage extends StatelessWidget {
   final List<Map<String, dynamic>> repairRequests;
 
-  const RepairStatusPage({super.key, required this.repairRequests});
+  const PickupStatusPage({super.key, required this.repairRequests});
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +33,6 @@ class RepairStatusPage extends StatelessWidget {
                       onPressed: () {
                         // Handle the pickup scheduling logic here
                         if (request['status'] == 'Approved') {
-                          // Example: Navigate to a pickup confirmation page
                           showDialog(
                             context: context,
                             builder: (BuildContext context) {
@@ -45,13 +44,13 @@ class RepairStatusPage extends StatelessWidget {
                                     "Are you sure you want to schedule a pickup for this request?"),
                                 actions: [
                                   TextButton(
-                                    child: const Text("Cancel",style: TextStyle(color: Colors.white),),
+                                    child: Text("Cancel",style: TextStyle(color: Theme.of(context).colorScheme.tertiary),),
                                     onPressed: () {
                                       Navigator.of(context).pop();
                                     },
                                   ),
                                   TextButton(
-                                    child: const Text("Confirm",style: TextStyle(color: Colors.white),),
+                                    child: Text("Confirm",style: TextStyle(color: Theme.of(context).colorScheme.tertiary),),
                                     onPressed: () {
                                       Navigator.of(context).pop();
                                       Navigator.pushNamed(

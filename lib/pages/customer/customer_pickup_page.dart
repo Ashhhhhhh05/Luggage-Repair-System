@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -24,6 +25,7 @@ class Booking {
 
 class CustomerPickupPage extends StatefulWidget {
   final String requestId;
+
   const CustomerPickupPage({super.key, required this.requestId});
 
   @override
@@ -35,7 +37,7 @@ class _CustomerPickupPageState extends State<CustomerPickupPage> {
   final _pickupAddressController = TextEditingController();
   final _specialInstructionController = TextEditingController();
   DateTime? _preferredDate;
-
+  final user = FirebaseAuth.instance.currentUser!;
 
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
@@ -53,7 +55,8 @@ class _CustomerPickupPageState extends State<CustomerPickupPage> {
           },
         );
 
-        final formattedPreferredDate = DateFormat('yyyy-MM-dd').format(_preferredDate!);
+        final formattedPreferredDate =
+            DateFormat('yyyy-MM-dd').format(_preferredDate!);
         final pickupId = generatePickupId();
 
         // Creating a Booking instance
@@ -69,9 +72,10 @@ class _CustomerPickupPageState extends State<CustomerPickupPage> {
         try {
           // Saving to Firestore
           await FirebaseFirestore.instance.collection('pickups').add({
+            'userId': user.uid,
             'pickupId': pickupId,
             'serviceType': booking.serviceType,
-            'pickup_date': booking.date,
+            'pickup_request_date': booking.date,
             'status': booking.status,
             'pickupAddress': booking.pickupAddress,
             'preferredDate': booking.preferredDate,
@@ -98,7 +102,8 @@ class _CustomerPickupPageState extends State<CustomerPickupPage> {
   Future<void> updateRepairRequestStatus(String repairRequestId) async {
     try {
       // Get a reference to the repair_request collection
-      CollectionReference repairRequests = FirebaseFirestore.instance.collection('repair_request');
+      CollectionReference repairRequests =
+          FirebaseFirestore.instance.collection('repair_request');
 
       // Update the status to 'scheduled for pickup'
       await repairRequests.doc(repairRequestId).update({
@@ -117,7 +122,8 @@ class _CustomerPickupPageState extends State<CustomerPickupPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           backgroundColor: Colors.white,
           title: Row(
             children: [
@@ -136,14 +142,17 @@ class _CustomerPickupPageState extends State<CustomerPickupPage> {
           ),
           content: Text(
             'Your pickup has been scheduled successfully.',
-            style: TextStyle(color: Colors.grey[800], fontSize: 18, fontFamily: "Nunito"),
+            style: TextStyle(
+                color: Colors.grey[800], fontSize: 18, fontFamily: "Nunito"),
           ),
           actions: [
             TextButton(
               style: TextButton.styleFrom(
                 backgroundColor: Colors.blue[900],
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
               ),
               child: Text(
                 'OK',
@@ -154,7 +163,8 @@ class _CustomerPickupPageState extends State<CustomerPickupPage> {
                   fontFamily: "Nunito",
                 ),
               ),
-              onPressed: () => Navigator.popAndPushNamed(context, 'repair_status_page'),
+              onPressed: () =>
+                  Navigator.popAndPushNamed(context, 'pickup_status_page'),
             ),
           ],
         );
@@ -167,7 +177,11 @@ class _CustomerPickupPageState extends State<CustomerPickupPage> {
       SnackBar(
         content: Text(
           message,
-          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'Nunito'),
+          style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Nunito'),
         ),
         backgroundColor: Colors.red[900],
         behavior: SnackBarBehavior.floating,
@@ -211,11 +225,16 @@ class _CustomerPickupPageState extends State<CustomerPickupPage> {
         icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
         label: const Text(
           "Back",
-          style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold, fontFamily: "Mont"),
+          style: TextStyle(
+              fontSize: 18,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontFamily: "Mont"),
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.blue[900],
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       ),
     );
@@ -236,19 +255,33 @@ class _CustomerPickupPageState extends State<CustomerPickupPage> {
             ),
           ),
           const SizedBox(height: 10),
-          _buildTextField(_pickupAddressController, 'Pickup Address', Icons.location_on, 2),
+          _buildTextField(
+              _pickupAddressController, 'Pickup Address', Icons.location_on, 2),
           const SizedBox(height: 16),
           _buildDateAndTimeButtons(),
           const SizedBox(height: 16),
-          _buildTextField(_specialInstructionController, 'Special Instruction(optional)', null, 4, isOptional: true),
+          _buildTextField(_specialInstructionController,
+              'Special Instruction(optional)', null, 4,
+              isOptional: true),
           const SizedBox(height: 16),
+          Text(
+            "Note: Your item will be collected before 5pm",
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey[700],
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+          const SizedBox(height: 10),
           _buildSubmitButton(),
         ],
       ),
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, IconData? icon, int maxLines,{bool isOptional = false}) {
+  Widget _buildTextField(TextEditingController controller, String label,
+      IconData? icon, int maxLines,
+      {bool isOptional = false}) {
     return Container(
       constraints: const BoxConstraints(maxWidth: 800),
       child: Card(
@@ -265,7 +298,8 @@ class _CustomerPickupPageState extends State<CustomerPickupPage> {
             decoration: InputDecoration(
               prefixIcon: icon != null ? Icon(icon) : null,
               labelText: label,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(3)),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(3)),
               fillColor: Colors.grey,
               filled: true,
             ),
@@ -316,8 +350,14 @@ class _CustomerPickupPageState extends State<CustomerPickupPage> {
             const SizedBox(width: 10),
             Flexible(
               child: Text(
-                _preferredDate == null ? 'Preferred Date' : DateFormat('yyyy-MM-dd').format(_preferredDate!),
-                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, fontFamily: "Nunito"),
+                _preferredDate == null
+                    ? 'Preferred Date'
+                    : DateFormat('yyyy-MM-dd').format(_preferredDate!),
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    fontFamily: "Nunito"),
               ),
             ),
           ],
@@ -346,7 +386,11 @@ class _CustomerPickupPageState extends State<CustomerPickupPage> {
             SizedBox(width: 10),
             Text(
               "Submit",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, fontFamily: "Nunito", color: Colors.white),
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: "Nunito",
+                  color: Colors.white),
             ),
           ],
         ),

@@ -1,4 +1,6 @@
 import 'package:final_app/pages/customer/customer_settings_page.dart';
+import 'package:final_app/pages/customer/faq_page.dart';
+import 'package:final_app/pages/customer/terms_conditions_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -90,7 +92,10 @@ class _CustomerHomeNavState extends State<CustomerHomeNav> {
                 index: 4,
                 onTap: () {
                   Navigator.pop(context);
-                  setState(() {});
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const TermsConditionsPage()),
+                  );
                 },
               ),
               _buildDrawerItem(
@@ -99,7 +104,10 @@ class _CustomerHomeNavState extends State<CustomerHomeNav> {
                 index: 5,
                 onTap: () {
                   Navigator.pop(context);
-                  setState(() {});
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const FrequentlyAskedQ()),
+                  );
                 },
               ),
               _buildDrawerItem(
@@ -124,7 +132,7 @@ class _CustomerHomeNavState extends State<CustomerHomeNav> {
                 padding: EdgeInsets.all(20.0),
                 child: Text(
                   'App version 1.0.0',
-                  style: TextStyle(color: Colors.white54),
+                  style: TextStyle(color: Colors.white54, fontFamily: "Mont",),
                 ),
               ),
               const SizedBox(height: 20),
@@ -143,7 +151,7 @@ class _CustomerHomeNavState extends State<CustomerHomeNav> {
         title: Text(
           "Matrix",
           style: TextStyle(
-            color: Colors.blue[900]!,
+            color: Theme.of(context).colorScheme.primary,
             fontWeight: FontWeight.bold,
             fontSize: 50,
             fontFamily: "june",
@@ -236,6 +244,7 @@ class _CustomerHomeNavState extends State<CustomerHomeNav> {
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        fontFamily: "Mont",
                       ),
                     ),
                     SizedBox(height: 5),
@@ -244,6 +253,7 @@ class _CustomerHomeNavState extends State<CustomerHomeNav> {
                       style: TextStyle(
                         color: Colors.white70,
                         fontSize: 13,
+                        fontFamily: "Mont",
                       ),
                     ),
                   ],
@@ -293,7 +303,7 @@ class _CustomerHomeNavState extends State<CustomerHomeNav> {
   }) {
     bool isSelected = selectedIndex == index;
     return Container(
-        width: 220, // Set the desired width
+        width: 220,
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         decoration: BoxDecoration(
             color: isSelected ? Colors.white : Colors.transparent,
@@ -304,7 +314,7 @@ class _CustomerHomeNavState extends State<CustomerHomeNav> {
           leading: FaIcon(icon, color: isSelected ? Colors.blue[900] : Colors.white,),
           title: Text(
             text,
-            style: TextStyle(color: isSelected ? Colors.blue[900] : Colors.white, fontSize: 16),
+            style: TextStyle(color: isSelected ? Colors.blue[900] : Colors.white, fontSize: 16, fontFamily: "Mont",),
           ),
           onTap: onTap,
         )

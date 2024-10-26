@@ -1,8 +1,31 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
+class Booking {
+  final String serviceType;
+  final String date;
+  final String status;
+  final String deliveryAddress;
+  final String preferredDate;
+  final String specialInstruction;
+
+  Booking({
+    required this.serviceType,
+    required this.date,
+    required this.status,
+    required this.deliveryAddress,
+    required this.preferredDate,
+    required this.specialInstruction,
+  });
+}
+
 class CustomerDeliveryPage extends StatefulWidget {
-  const CustomerDeliveryPage({super.key});
+  final String requestId;
+
+  const CustomerDeliveryPage({super.key, required this.requestId});
 
   @override
   State<CustomerDeliveryPage> createState() => _CustomerDeliveryPageState();
@@ -14,35 +37,92 @@ class _CustomerDeliveryPageState extends State<CustomerDeliveryPage> {
   final _specialInstructionController = TextEditingController();
   DateTime? _preferredDate;
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       if (_preferredDate == null) {
         _showSnackBar('Please select a preferred date.');
       } else {
-        print('Delivery Address: ${_deliveryAddressController.text}');
-        print('Preferred Date: ${_preferredDate}');
-        print('Special Instruction: ${_specialInstructionController.text}');
-        _showDialog();
+        // Show loading dialog
+        showDialog(
+          context: context,
+          barrierDismissible: false, // Prevent dismissing the dialog
+          builder: (context) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          },
+        );
+
+        final formattedPreferredDate = DateFormat('yyyy-MM-dd').format(_preferredDate!);
+        final deliveryId = generateDeliveryId();
+
+        // Creating a Booking instance
+        final booking = Booking(
+          serviceType: "Delivery",
+          date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
+          status: "Scheduled for Delivery",
+          deliveryAddress: _deliveryAddressController.text,
+          preferredDate: formattedPreferredDate,
+          specialInstruction: _specialInstructionController.text,
+        );
+
+        try {
+          // Saving to Firestore
+          await FirebaseFirestore.instance.collection('deliveries').add({
+            'deliveryId': deliveryId,
+            'serviceType': booking.serviceType,
+            'delivery_request_date': booking.date,
+            'status': booking.status,
+            'deliveryAddress': booking.deliveryAddress,
+            'preferredDate': booking.preferredDate,
+            'specialInstruction': booking.specialInstruction,
+            'createdAt': Timestamp.now(),
+            'repairId': widget.requestId,
+          });
+
+          // Update the status of the repair request
+          await updateRepairRequestStatus(widget.requestId);
+
+          // Dismiss the loading dialog and show success dialog
+          Navigator.of(context).pop();
+          _showDialog();
+        } catch (error) {
+          // Handle Firestore errors
+          Navigator.of(context).pop();
+          _showSnackBar('Error scheduling delivery: $error');
+        }
       }
+    }
+  }
+
+  Future<void> updateRepairRequestStatus(String repairRequestId) async {
+    try {
+      // Get a reference to the repair_request collection
+      CollectionReference repairRequests = FirebaseFirestore.instance.collection('repair_request');
+
+      // Update the status to 'scheduled for delivery'
+      await repairRequests.doc(repairRequestId).update({
+        'status': 'Scheduled for delivery',
+      });
+
+      print("Repair request status updated to 'scheduled for delivery'");
+    } catch (e) {
+      // Handle errors (e.g., show an error message)
+      print("Error updating repair request status: $e");
     }
   }
 
   void _showDialog() {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           backgroundColor: Colors.white,
           title: Row(
             children: [
-              Icon(
-                Icons.check_circle,
-                color: Colors.green[600],
-              ),
-              SizedBox(width: 10),
+              Icon(Icons.check_circle, color: Colors.green[600]),
+              const SizedBox(width: 10),
               Text(
                 'Delivery Scheduled',
                 style: TextStyle(
@@ -51,39 +131,30 @@ class _CustomerDeliveryPageState extends State<CustomerDeliveryPage> {
                   fontSize: 24,
                   fontFamily: "Mont",
                 ),
-              )
+              ),
             ],
           ),
           content: Text(
-            'Your delivery has been scheduled successfully,',
-            style: TextStyle(
-              color: Colors.grey[800],
-              fontSize: 18,
-              fontFamily: "Nunito",
-            ),
+            'Your delivery has been scheduled successfully.',
+            style: TextStyle(color: Colors.grey[800], fontSize: 18, fontFamily: "Nunito"),
           ),
           actions: [
             TextButton(
               style: TextButton.styleFrom(
-                foregroundColor: Colors.white,
                 backgroundColor: Colors.blue[900],
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
               child: Text(
                 'OK',
                 style: TextStyle(
+                  color: Colors.white,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   fontFamily: "Nunito",
                 ),
               ),
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.popAndPushNamed(context, 'delivery_status_page'),
             ),
           ],
         );
@@ -96,17 +167,13 @@ class _CustomerDeliveryPageState extends State<CustomerDeliveryPage> {
       SnackBar(
         content: Text(
           message,
-          style: TextStyle(color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'nunito'),
+          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'Nunito'),
         ),
-        backgroundColor: Colors.red[900]!,
+        backgroundColor: Colors.red[900],
         behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        duration: Duration(seconds: 3),
-        elevation: 6,
+        duration: const Duration(seconds: 3),
       ),
     );
   }
@@ -114,199 +181,193 @@ class _CustomerDeliveryPageState extends State<CustomerDeliveryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blue[100]!, Colors.white],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue[100]!, Colors.white],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          child: Stack(
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(15),
+          child: Column(
             children: [
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 35, horizontal: 15),
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  icon: Icon(Icons.arrow_back_ios_new_rounded),
-                  label: Text(
-                    "Back",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: "Mont",
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(50, 40),
-                    backgroundColor: Colors.blue[900],
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(padding: EdgeInsets.symmetric(
-                  vertical: 100, horizontal: 30),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      Text(
-                        "Schedule Delivery",
-                        style: TextStyle(
-                          color: Colors.blue[900]!,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 30,
-                          fontFamily: "june",
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: TextFormField(
-                            controller: _deliveryAddressController,
-                            maxLines: 2,
-                            decoration: InputDecoration(
-                              prefixIcon: Icon(Icons.location_on),
-                              labelText: 'Delivery Address',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(3),
-                              ),
-                              fillColor: Colors.white,
-                              filled: true,
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please Enter Delivery Address!!';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Column(
-                        children: [
-                          ElevatedButton(
-                            onPressed: () async {
-                              final DateTime? pickedDate = await showDatePicker(
-                                context: context,
-                                initialDate: DateTime.now(),
-                                firstDate: DateTime.now(),
-                                lastDate: DateTime(2025),
-                              );
-                              setState(() {
-                                _preferredDate = pickedDate;
-                              });
-                            },
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.date_range,
-                                  color: Colors.white,
-                                ),
-                                SizedBox(width: 10),
-                                Flexible(
-                                  child: Center(
-                                    child: Text(
-                                      _preferredDate == null
-                                          ? 'Preferred Date'
-                                          : DateFormat('yyyy-MM-dd').format(_preferredDate!),
-                                      overflow: TextOverflow.visible,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontFamily: "nunito",
-                                        fontWeight: FontWeight.w900,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.date_range,
-                                  color: Colors.white,
-                                ),
-                              ],
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              minimumSize: Size(100, 60),
-                              backgroundColor: Colors.blue[900],
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                      const SizedBox(height: 16),
-                      Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: TextFormField(
-                            controller: _specialInstructionController,
-                            maxLines: 4,
-                            decoration: InputDecoration(
-                              labelText: 'Special Instruction',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(3),
-                              ),
-                              fillColor: Colors.white,
-                              filled: true,
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please Enter Special Instruction!!';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _submitForm,
-                          child: const Text(
-                            'Submit',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontFamily: "nunito",
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                              minimumSize: Size(100, 60),
-                              backgroundColor: Colors.blue[900],
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              )
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                ]),
-              )
-      )],
+              _buildBackButton(),
+              const SizedBox(height: 40),
+              _buildForm(),
+            ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildBackButton() {
+    return Align(
+      alignment: Alignment.topLeft,
+      child: ElevatedButton.icon(
+        onPressed: () => Navigator.pop(context),
+        icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+        label: const Text(
+          "Back",
+          style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold, fontFamily: "Mont"),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blue[900],
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildForm() {
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: [
+          Text(
+            "Schedule Delivery",
+            style: TextStyle(
+              color: Colors.blue[900]!,
+              fontWeight: FontWeight.bold,
+              fontSize: 30,
+              fontFamily: "june",
+            ),
+          ),
+          const SizedBox(height: 10),
+          _buildTextField(_deliveryAddressController, 'Delivery Address', Icons.location_on, 2),
+          const SizedBox(height: 16),
+          _buildDateAndTimeButtons(),
+          const SizedBox(height: 16),
+          _buildTextField(_specialInstructionController, 'Special Instruction (optional)', null, 4, isOptional: true),
+          const SizedBox(height: 16),
+          Text(
+            "Note: Your item will be delivered before 5pm",
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey[700],
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildSubmitButton(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, IconData? icon, int maxLines, {bool isOptional = false}) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 800),
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: TextFormField(
+            style: const TextStyle(
+              color: Colors.white,
+            ),
+            controller: controller,
+            maxLines: maxLines,
+            decoration: InputDecoration(
+              prefixIcon: icon != null ? Icon(icon) : null,
+              labelText: label,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(3)),
+              fillColor: Colors.grey,
+              filled: true,
+            ),
+            validator: (value) {
+              if (!isOptional && (value == null || value.isEmpty)) {
+                return 'Please enter $label';
+              }
+              return null; // No validation error
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateAndTimeButtons() {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 800),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildDateButton(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDateButton() {
+    return SizedBox(
+      height: 50,
+      child: ElevatedButton(
+        onPressed: () async {
+          final pickedDate = await showDatePicker(
+            context: context,
+            initialDate: DateTime.now(),
+            firstDate: DateTime.now(),
+            lastDate: DateTime(2025),
+          );
+          setState(() {
+            _preferredDate = pickedDate;
+          });
+        },
+        style: _elevatedButtonStyle(),
+        child: Row(
+          children: [
+            const Icon(Icons.date_range, color: Colors.white),
+            const SizedBox(width: 10),
+            Flexible(
+              child: Text(
+                _preferredDate == null ? 'Preferred Date' : DateFormat('yyyy-MM-dd').format(_preferredDate!),
+                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, fontFamily: "Nunito"),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return Container(
+      height: 50,
+      constraints: const BoxConstraints(maxWidth: 800),
+      child: ElevatedButton(
+        onPressed: _submitForm,
+        style: _elevatedButtonStyle(),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(width: 10),
+            Text(
+              "Submit",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, fontFamily: "Nunito", color: Colors.white),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+  ButtonStyle _elevatedButtonStyle() {
+    return ElevatedButton.styleFrom(
+      backgroundColor: Colors.blue[900],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    );
+  }
+
+  String generateDeliveryId() {
+    // Generate a unique delivery ID (you can customize this logic)
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final random = Random();
+    return List.generate(8, (index) => characters[random.nextInt(characters.length)]).join();
   }
 }

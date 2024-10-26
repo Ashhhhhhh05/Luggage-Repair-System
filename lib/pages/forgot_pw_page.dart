@@ -14,8 +14,31 @@ class ForgotPasswordPage extends StatefulWidget {
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final emailController = TextEditingController();
 
-  //Method to reset users password
+  // Show error to user
+  void showErrorMessage(String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.deepPurple,
+          title: Center(
+            child: Text(
+              message,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Method to reset users password
   Future passwordReset() async {
+    if(emailController.text.trim().isEmpty){
+      showErrorMessage("Please enter your email!");
+      return;
+    }
+
     try {
       await FirebaseAuth.instance
           .sendPasswordResetEmail(email: emailController.text.trim());
@@ -28,14 +51,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         },
       );
     } on FirebaseAuthException catch (e) {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            content: Text(e.message.toString()),
-          );
-        },
-      );
+      showErrorMessage(e.code);
     }
   }
 
@@ -46,7 +62,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(
-          color: Theme.of(context).colorScheme.tertiary,
+          color: Theme.of(context).colorScheme.primary,
         ),
       ),
       extendBodyBehindAppBar: true,
@@ -89,12 +105,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   children: [
                      Icon(
                       Icons.lock_reset,
-                      color: Theme.of(context).colorScheme.tertiary,
+                      color: Theme.of(context).colorScheme.primary,
                        size: 100,
                     ),
 
                     const SizedBox(height: 15),
 
+                    // Title
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 25.0),
                       child: Text(
@@ -102,36 +119,33 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 20,
-                          color: Theme.of(context).colorScheme.tertiary,
+                          color: Theme.of(context).colorScheme.primary,
+                          fontFamily: "Mont",
                         ),
                       ),
                     ),
 
-                    const SizedBox(
-                      height: 10,
-                    ),
+                    const SizedBox(height: 10),
 
-                    //email text field
+                    // Email text field
                     MyTextField(
                       controller: emailController,
                       label: 'Email',
                       obscureText: false,
                       myIcon: Icons.email_outlined,
                     ),
-                    //reset button
 
-                    const SizedBox(
-                      height: 10,
-                    ),
+                    const SizedBox(height: 10),
 
+                    // Reset password button
                     MyButton(
-                      color: Theme.of(context).colorScheme.tertiary,
+                      color: Theme.of(context).colorScheme.primary,
                       onTap: passwordReset,
-                      child: Center(
+                      child: const Center(
                         child: Text(
                           "Reset Password",
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.inversePrimary,
+                            color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
