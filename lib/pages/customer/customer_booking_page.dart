@@ -180,7 +180,7 @@ class _CustomerBookingPageState extends State<CustomerBookingPage> {
             children: [
               Text('Service Type: ${booking.serviceType}',
                   style: const TextStyle(fontFamily: "Mont")),
-              Text('Date: ${booking.date}',
+              Text('Request Date: ${booking.date}',
                   style: const TextStyle(fontFamily: "Mont")),
               Text('Status: ${booking.status}',
                   style: const TextStyle(fontFamily: "Mont")),
@@ -394,27 +394,6 @@ class BookingCard extends StatelessWidget {
                       ),
                       child: const Text(
                         'Cancel',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                // Payment button, shown only if onPayment is provided
-                if (onPayment != null)
-                  SizedBox(
-                    width: 95,
-                    child: ElevatedButton(
-                      onPressed: onPayment,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green[700],
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        'Pay Now',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
