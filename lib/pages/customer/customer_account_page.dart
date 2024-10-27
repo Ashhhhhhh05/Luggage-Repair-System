@@ -40,9 +40,9 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
           .get();
       if (userDoc.exists) {
         setState(() {
-          fullName =
-              userDoc['fullName'] ?? '';
+          fullName = userDoc['fullName'] ?? '';
           _phoneNumber = userDoc['phone'] ?? '';
+          _profileImageUrl = userDoc['profileImageUrl'] ?? '';
         });
       }
     } catch (e) {
@@ -123,6 +123,7 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
 
   final RegExp phoneRegex = RegExp(r'^\+?\d{10,15}$');
   final RegExp emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+  final RegExp nameRegex = RegExp(r'^[a-zA-Z\s]+$');
 
   bool isPhoneNumberValid(String phoneNumber) {
     return phoneRegex.hasMatch(phoneNumber);
@@ -207,14 +208,15 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
                 title: "Update your name",
                 controller: _nameController,
                 onSave: () {
-                  if (_nameController.text.trim().isNotEmpty) {
+                  if (_nameController.text.trim().isNotEmpty &&
+                  nameRegex.hasMatch(_nameController.text.trim())) {
                     setState(() {
                       fullName = _nameController.text.trim();
                     });
                     Navigator.of(context).pop();
                     updateUserData(fullName);
                   } else {
-                    _showSnackBar("Name cannot be empty.", Colors.red[900]!);
+                    _showSnackBar("Full Name can only contain letters and spaces", Colors.red[900]!);
                   }
                 },
               );
@@ -222,7 +224,7 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
           ),
           _buildCustomTile(
             title: "Phone Number",
-            subtitle: _phoneNumber,
+            subtitle: "0$_phoneNumber",
             icon: Icons.phone,
             onTap: () {
               _showUpdateDialog(
@@ -277,6 +279,34 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
         ]),
       ),
     ));
+  }
+
+  Future<void> removeProfileImage() async {
+    try {
+      // Reference to Firebase Storage image
+      Reference ref = FirebaseStorage.instance
+          .ref()
+          .child('profile_images/${user.uid}.jpg');
+
+      // Delete the image from Firebase Storage
+      await ref.delete();
+
+      // Update Firestore to remove the profile image URL
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+        'profileImageUrl': FieldValue.delete(),
+      });
+
+      // Update the local state
+      setState(() {
+        _selectedImage = null;
+        _profileImageUrl = ""; // Reset profile image URL
+      });
+
+      _showSnackBar("Profile picture removed successfully.", Colors.green[900]!);
+    } catch (e) {
+      print("Error removing profile image: $e");
+      _showSnackBar("Failed to remove profile picture.", Colors.red[900]!);
+    }
   }
 
   Widget buildBottomSheet() {
@@ -338,13 +368,13 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
                     ),
                     onTap: () async {
                       final ImagePicker picker = ImagePicker();
-
-                      final XFile? image =
-                          await picker.pickImage(source: ImageSource.camera);
+                      final XFile? image = await picker.pickImage(source: ImageSource.camera);
                       if (image != null) {
                         setState(() {
                           _selectedImage = File(image.path);
                         });
+                        // Call upload function to save to Firebase
+                        await uploadProfileImage();
                       }
                       Navigator.pop(context);
                     },
@@ -372,10 +402,8 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
                       child: const Icon(Icons.delete_outline,
                           size: 28, color: Colors.white),
                     ),
-                    onTap: () {
-                      setState(() {
-                        _selectedImage = null;
-                      });
+                    onTap: () async {
+                      await removeProfileImage();
                       Navigator.pop(context);
                     },
                   ),

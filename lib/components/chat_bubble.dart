@@ -29,6 +29,7 @@ class ChatBubble extends StatelessWidget {
             style: const TextStyle(
               color: Colors.white,
               fontFamily: "Mont",
+              fontSize: 16,
             ),
           ),
         ),
@@ -39,7 +40,8 @@ class ChatBubble extends StatelessWidget {
             timestamp,
             style: const TextStyle(
               color: Colors.grey,
-              fontSize: 12,
+              fontSize: 13,
+              fontFamily: "Mont"
             ),
           ),
         ),

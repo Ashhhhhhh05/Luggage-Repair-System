@@ -67,7 +67,7 @@ class _CustomerRepairPageState extends State<CustomerRepairPage> {
           title: Center(
             child: Text(
               message,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: Colors.white,fontSize: 17,fontFamily: "Mont"),
             ),
           ),
         );

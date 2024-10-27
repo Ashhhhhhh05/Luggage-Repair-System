@@ -14,24 +14,38 @@ class PickupStatusPage extends StatelessWidget {
       ),
       body: repairRequests.isEmpty
           ? const Center(
-              child: Text(
-                'No repair requests found.',
-                style: TextStyle(fontSize: 18),
-              ),
-            )
+        child: Text(
+          'No repair requests found.',
+          style: TextStyle(fontSize: 18, fontFamily: "Mont"),
+        ),
+      )
           : ListView.builder(
-              itemCount: repairRequests.length,
-              itemBuilder: (context, index) {
-                final request = repairRequests[index];
-                return Card(
-                  margin: const EdgeInsets.all(8),
-                  elevation: 4,
-                  child: ListTile(
-                    title: Text("Request ID: ${request['id']}"),
-                    subtitle: Text("Status: ${request['status']}"),
-                    trailing: ElevatedButton(
+        itemCount: repairRequests.length,
+        itemBuilder: (context, index) {
+          final request = repairRequests[index];
+          return Card(
+            margin: const EdgeInsets.all(8),
+            elevation: 4,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ListTile(
+                    title: Text(
+                      "Request ID: ${request['id']}",
+                      style: const TextStyle(fontFamily: "Mont",fontSize: 15),
+                    ),
+                    subtitle: Text(
+                      "Status: ${request['status']}",
+                      style: const TextStyle(fontFamily: "Mont",fontSize: 15),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 50,
+                    child: ElevatedButton(
                       onPressed: () {
-                        // Handle the pickup scheduling logic here
+                        // Pickup logic
                         if (request['status'] == 'Approved') {
                           showDialog(
                             context: context,
@@ -39,22 +53,39 @@ class PickupStatusPage extends StatelessWidget {
                               return AlertDialog(
                                 title: const Text(
                                   "Schedule Pickup",
+                                  style: TextStyle(fontFamily: "Mont"),
                                 ),
                                 content: const Text(
-                                    "Are you sure you want to schedule a pickup for this request?"),
+                                  "Are you sure you want to schedule a pickup for this request?",
+                                ),
                                 actions: [
                                   TextButton(
-                                    child: Text("Cancel",style: TextStyle(color: Theme.of(context).colorScheme.tertiary),),
+                                    child: Text(
+                                      "Cancel",
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .tertiary,
+                                      ),
+                                    ),
                                     onPressed: () {
                                       Navigator.of(context).pop();
                                     },
                                   ),
                                   TextButton(
-                                    child: Text("Confirm",style: TextStyle(color: Theme.of(context).colorScheme.tertiary),),
+                                    child: Text(
+                                      "Confirm",
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .tertiary,
+                                      ),
+                                    ),
                                     onPressed: () {
                                       Navigator.of(context).pop();
                                       Navigator.pushNamed(
-                                          context, '/customer_pickup_page',
+                                        context,
+                                        '/customer_pickup_page',
                                         arguments: request['id'],
                                       );
                                     },
@@ -65,23 +96,37 @@ class PickupStatusPage extends StatelessWidget {
                           );
                         } else {
                           // If not approved, show a message
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                  'Pickup can only be scheduled for approved requests.'),
-                            ),
-                          );
+                          showDialog(context: context, builder: (context){
+                            return const AlertDialog(
+                              backgroundColor: Colors.deepPurple,
+                              title: Center(
+                                child: Text(
+                                  'Pickup can only be scheduled for approved requests.',
+                                  style: TextStyle(
+                                    fontFamily: "Mont",
+                                    color: Colors.white,
+                                    fontSize: 17,
+                                  ),),
+                              ),
+                            );
+                          });
                         }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue[900],
                       ),
-                      child: const Text("Schedule Pickup", style: TextStyle(color: Colors.white),),
+                      child: const Text(
+                        "Schedule Pickup",
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
                   ),
-                );
-              },
+                ],
+              ),
             ),
+          );
+        },
+      ),
     );
   }
 }

@@ -13,7 +13,8 @@ class CustomerBookingPage extends StatefulWidget {
 class _CustomerBookingPageState extends State<CustomerBookingPage> {
   List<Booking> bookings = [];
   String filter = 'All';
-  final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+  final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final User? currentUser = FirebaseAuth.instance.currentUser;
@@ -21,48 +22,74 @@ class _CustomerBookingPageState extends State<CustomerBookingPage> {
   @override
   void initState() {
     super.initState();
-    _fetchUserBookings();
+    fetchUserBookings();
   }
 
-  Future<void> _fetchUserBookings() async {
+  Future<void> fetchUserBookings() async {
     if (currentUser != null) {
       try {
-        // Fetch repair requests from Firestore where userId matches the current user
         QuerySnapshot querySnapshot = await _firestore
             .collection('repair_request')
             .where('userId', isEqualTo: currentUser!.uid)
             .get();
 
-        List<Booking> userBookings = querySnapshot.docs.map((doc) {
+        List<Booking> userBookings = [];
+        for (var doc in querySnapshot.docs) {
           var data = doc.data() as Map<String, dynamic>;
           Timestamp timestamp = data['date'] as Timestamp;
           DateTime dateTime = timestamp.toDate();
           String formattedDate =
               DateFormat('yyyy-MM-dd HH:mm').format(dateTime);
 
-          return Booking(
+          // Fetch preferred date from pickups collection
+          String requestId =
+              doc.id; // Use the request ID to fetch the preferred date
+          String preferredDate = await fetchPickupDate(requestId);
+
+          userBookings.add(Booking(
             name: data['customerName'] ?? 'Unknown',
             surname: data['customerSurname'] ?? 'Unknown',
             email: data['customerEmail'] ?? 'Unknown',
             serviceType: 'Repair',
             brand: data['brand'] ?? 'Unknown',
             description: data['description'] ?? 'Unknown',
-            date: formattedDate,
+            requestDate: formattedDate,
+            pickupDate: preferredDate,
             status: data['status'] ?? 'Unknown',
             id: doc.id,
             fee: data['fee'] ?? 'Unknown',
-          );
-        }).toList();
+          ));
+        }
 
         setState(() {
           bookings = userBookings;
         });
       } catch (e) {
-        // Handle error
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error fetching bookings: $e')),
         );
       }
+    }
+  }
+
+  Future<String> fetchPickupDate(String requestId) async {
+    try {
+      DocumentSnapshot pickupDoc =
+          await _firestore.collection('pickups').doc(requestId).get();
+
+      if (pickupDoc.exists) {
+        var data = pickupDoc.data() as Map<String, dynamic>;
+        String preferredDate = data['preferredDate'] as String;
+        DateTime preferredDateTime = DateTime.parse(preferredDate);
+        return DateFormat('yyyy-MM-dd').format(preferredDateTime);
+      } else {
+        return 'No pickup date available';
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching pickup date: $e')),
+      );
+      return 'Error';
     }
   }
 
@@ -78,58 +105,66 @@ class _CustomerBookingPageState extends State<CustomerBookingPage> {
     return Scaffold(
         key: _scaffoldMessengerKey,
         body: Center(
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 1000),
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  _buildFilterButton('All', filter),
-                  const SizedBox(width: 12),
-                  _buildFilterButton('Active', filter),
-                  const SizedBox(width: 12),
-                  _buildFilterButton('Completed', filter),
-                ],
-              ),
-            ),
-            Expanded(
-              child: filteredBookings.isEmpty
-                  ? const Center(child: Text('No bookings available'))
-                  : ListView.builder(
-                      itemCount: filteredBookings.length,
-                      itemBuilder: (context, index) {
-                        return BookingCard(
-                          booking: filteredBookings[index],
-                          onViewDetails: () {
-                            _showBookingDetails(
-                                context, filteredBookings[index]);
-                          },
-                          onReschedule:
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 1000),
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      _buildFilterButton('All', filter),
+                      const SizedBox(width: 12),
+                      _buildFilterButton('Active', filter),
+                      const SizedBox(width: 12),
+                      _buildFilterButton('Completed', filter),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: filteredBookings.isEmpty
+                      ? const Center(
+                          child: Text(
+                          'No bookings available',
+                          style: TextStyle(
+                            fontFamily: "Mont",
+                            fontSize: 17,
+                          ),
+                        ))
+                      : ListView.builder(
+                          itemCount: filteredBookings.length,
+                          itemBuilder: (context, index) {
+                            return BookingCard(
+                              booking: filteredBookings[index],
+                              onViewDetails: () {
+                                _showBookingDetails(
+                                    context, filteredBookings[index]);
+                              },
+                              /*onReschedule:
                               filteredBookings[index].status == 'Completed'
                                   ? null
                                   : () {
                                       // Handle reschedule action
                                       print(
                                           'Reschedule booking ${filteredBookings[index].id}');
-                                    },
-                          onCancel:
-                              filteredBookings[index].status == 'Completed'
-                                  ? null
-                                  : () {
-                                      _confirmCancelBooking(index);
-                                    },
-                        );
-                      },
-                    ),
+                                    },*/
+                              onCancel:
+                                  filteredBookings[index].status == 'Completed'
+                                      ? null
+                                      : () {
+                                          _confirmCancelBooking(index);
+                                        },
+                            );
+                          },
+                        ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-    ));
+          ),
+        ));
   }
 
   GestureDetector _buildFilterButton(String filterName, String currentFilter) {
@@ -172,20 +207,24 @@ class _CustomerBookingPageState extends State<CustomerBookingPage> {
         return AlertDialog(
           title: Text(
             'Booking Details',
-            style: TextStyle(fontFamily: "Mont", color: Theme.of(context).colorScheme.primary),
+            style: TextStyle(
+                fontFamily: "Mont",
+                color: Theme.of(context).colorScheme.primary),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Service Type: ${booking.serviceType}',
-                  style: const TextStyle(fontFamily: "Mont")),
-              Text('Request Date: ${booking.date}',
-                  style: const TextStyle(fontFamily: "Mont")),
+                  style: const TextStyle(fontFamily: "Mont", fontSize: 16)),
+              Text('Request Date: ${booking.requestDate}',
+                  style: const TextStyle(fontFamily: "Mont", fontSize: 16)),
+              Text('Pickup Date: ${booking.pickupDate}',
+                  style: const TextStyle(fontFamily: "Mont", fontSize: 16)),
               Text('Status: ${booking.status}',
-                  style: const TextStyle(fontFamily: "Mont")),
+                  style: const TextStyle(fontFamily: "Mont", fontSize: 16)),
               Text('ID: ${booking.id}',
-                  style: const TextStyle(fontFamily: "Mont")),
+                  style: const TextStyle(fontFamily: "Mont", fontSize: 16)),
             ],
           ),
           actions: [
@@ -195,7 +234,9 @@ class _CustomerBookingPageState extends State<CustomerBookingPage> {
               },
               child: Text(
                 'Close',
-                style: TextStyle(color: Theme.of(context).colorScheme.primary, fontFamily: "Mont"),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontFamily: "Mont"),
               ),
             ),
           ],
@@ -207,11 +248,17 @@ class _CustomerBookingPageState extends State<CustomerBookingPage> {
   void _confirmCancelBooking(int index) {
     // Check if the booking status is already 'Cancelled'
     if (bookings[index].status == 'Cancelled') {
-      showDialog(context: context, builder: (BuildContext context){
-        return const AlertDialog(
-          content: Text('This booking has already been cancelled.', style: TextStyle(fontFamily: "Mont"),),
-        );
-      });
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return const AlertDialog(
+              backgroundColor: Colors.deepPurple,
+              title: Center(
+                child: Text('This booking has already been cancelled.',
+                    style: TextStyle(fontFamily: "Mont", fontSize: 17)),
+              ),
+            );
+          });
       return;
     }
 
@@ -221,7 +268,9 @@ class _CustomerBookingPageState extends State<CustomerBookingPage> {
         return AlertDialog(
           title: Text(
             'Cancel Booking',
-            style: TextStyle(color: Theme.of(context).colorScheme.primary, fontFamily: "Mont"),
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                fontFamily: "Mont"),
           ),
           content: const Text(
             'Are you sure you want to cancel this service?',
@@ -234,7 +283,9 @@ class _CustomerBookingPageState extends State<CustomerBookingPage> {
               },
               child: Text(
                 'No',
-                style: TextStyle(color: Theme.of(context).colorScheme.primary, fontFamily: "Mont"),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontFamily: "Mont"),
               ),
             ),
             TextButton(
@@ -243,7 +294,10 @@ class _CustomerBookingPageState extends State<CustomerBookingPage> {
                 try {
                   // Update the booking's status to 'Cancelled' in Firestore
                   String bookingId = bookings[index].id;
-                  await _firestore.collection('repair_request').doc(bookingId).update({
+                  await _firestore
+                      .collection('repair_request')
+                      .doc(bookingId)
+                      .update({
                     'status': 'Cancelled',
                   });
 
@@ -254,7 +308,8 @@ class _CustomerBookingPageState extends State<CustomerBookingPage> {
 
                   // Notify the user of success
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Booking cancelled successfully.')),
+                    const SnackBar(
+                        content: Text('Booking cancelled successfully.')),
                   );
                 } catch (e) {
                   // Handle any errors
@@ -265,7 +320,9 @@ class _CustomerBookingPageState extends State<CustomerBookingPage> {
               },
               child: Text(
                 'Yes',
-                style: TextStyle(color: Theme.of(context).colorScheme.primary, fontFamily: "Mont"),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontFamily: "Mont"),
               ),
             ),
           ],
@@ -278,7 +335,8 @@ class _CustomerBookingPageState extends State<CustomerBookingPage> {
 class BookingCard extends StatelessWidget {
   final Booking booking;
   final VoidCallback? onViewDetails;
-  final VoidCallback? onReschedule;
+
+  //final VoidCallback? onReschedule;
   final VoidCallback? onCancel;
   final VoidCallback? onPayment;
 
@@ -286,7 +344,7 @@ class BookingCard extends StatelessWidget {
     super.key,
     required this.booking,
     this.onViewDetails,
-    this.onReschedule,
+    //this.onReschedule,
     this.onCancel,
     this.onPayment,
   });
@@ -321,7 +379,7 @@ class BookingCard extends StatelessWidget {
                   fontFamily: "Mont"),
             ),
             const SizedBox(height: 8.0),
-            Text('Request Date: ${booking.date}',
+            Text('Request Date: ${booking.requestDate}',
                 style: const TextStyle(
                     fontSize: 16.0, color: Colors.white, fontFamily: "Mont")),
             const SizedBox(height: 8.0),
@@ -330,6 +388,10 @@ class BookingCard extends StatelessWidget {
                     fontSize: 16.0, color: Colors.white, fontFamily: "Mont")),
             const SizedBox(height: 8.0),
             Text('Request ID: ${booking.id}',
+                style: const TextStyle(
+                    fontSize: 16.0, color: Colors.white, fontFamily: "Mont")),
+            const SizedBox(height: 8.0),
+            Text('Pickup Date: ${booking.pickupDate}',
                 style: const TextStyle(
                     fontSize: 16.0, color: Colors.white, fontFamily: "Mont")),
             const SizedBox(height: 8.0),
@@ -360,7 +422,7 @@ class BookingCard extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: 2),
-                if (onReschedule != null)
+                /*if (onReschedule != null)
                   SizedBox(
                     width: 128,
                     child: ElevatedButton(
@@ -379,7 +441,7 @@ class BookingCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                  ),
+                  ),*/
                 SizedBox(width: 2),
                 if (onCancel != null)
                   SizedBox(
@@ -417,10 +479,11 @@ class Booking {
   final String serviceType;
   final String brand;
   final String description;
-  final String date;
+  final String requestDate;
   String status;
   final String id;
   final String fee;
+  final String pickupDate;
 
   Booking({
     required this.name,
@@ -429,9 +492,10 @@ class Booking {
     required this.serviceType,
     required this.brand,
     required this.description,
-    required this.date,
+    required this.requestDate,
     required this.status,
     required this.id,
     required this.fee,
+    required this.pickupDate,
   });
 }

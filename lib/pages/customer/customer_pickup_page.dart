@@ -70,8 +70,8 @@ class _CustomerPickupPageState extends State<CustomerPickupPage> {
         );
 
         try {
-          // Saving to Firestore
-          await FirebaseFirestore.instance.collection('pickups').add({
+          // Saving to Firestore with requestId as the document ID
+          await FirebaseFirestore.instance.collection('pickups').doc(widget.requestId).set({
             'userId': user.uid,
             'pickupId': pickupId,
             'serviceType': booking.serviceType,
@@ -81,7 +81,6 @@ class _CustomerPickupPageState extends State<CustomerPickupPage> {
             'preferredDate': booking.preferredDate,
             'specialInstruction': booking.specialInstruction,
             'createdAt': Timestamp.now(),
-            'repairId': widget.requestId,
           });
 
           // Update the status of the repair request

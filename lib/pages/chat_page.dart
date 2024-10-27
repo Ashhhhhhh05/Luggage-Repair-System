@@ -127,7 +127,7 @@ class _ChatPageState extends State<ChatPage> {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
 
     // timestamp
-    String formattedTimestamp = DateFormat('HH:mm').format((data['timestamp'] as Timestamp).toDate());
+    String formattedTimestamp = DateFormat('MMM d, y, HH:mm').format((data['timestamp'] as Timestamp).toDate());
 
     // is current user
     bool isCurrentUser = data['senderID'] == const AuthPage().getCurrentUser()!.uid;
