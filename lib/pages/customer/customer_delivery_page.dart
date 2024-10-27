@@ -189,33 +189,44 @@ class _CustomerDeliveryPageState extends State<CustomerDeliveryPage> {
             end: Alignment.bottomRight,
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(15),
-          child: Column(
-            children: [
-              _buildBackButton(),
-              const SizedBox(height: 40),
-              _buildForm(),
-            ],
-          ),
+        child: Column(
+          children: [
+            _buildBackButton(),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(15),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 40),
+                      _buildForm(),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildBackButton() {
-    return Align(
-      alignment: Alignment.topLeft,
-      child: ElevatedButton.icon(
-        onPressed: () => Navigator.pop(context),
-        icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
-        label: const Text(
-          "Back",
-          style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold, fontFamily: "Mont"),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue[900],
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 50, 0, 0),
+      child: Align(
+        alignment: Alignment.topLeft,
+        child: ElevatedButton.icon(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+          label: const Text(
+            "Back",
+            style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold, fontFamily: "Mont"),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue[900],
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
         ),
       ),
     );
@@ -241,13 +252,16 @@ class _CustomerDeliveryPageState extends State<CustomerDeliveryPage> {
           _buildDateAndTimeButtons(),
           const SizedBox(height: 16),
           _buildTextField(_specialInstructionController, 'Special Instruction (optional)', null, 4, isOptional: true),
-          const SizedBox(height: 16),
-          Text(
-            "Note: Your item will be delivered before 5pm",
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey[700],
-              fontStyle: FontStyle.italic,
+          const SizedBox(height: 7),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Text(
+              "Note: Your item will be delivered before 5pm",
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey[700],
+                fontStyle: FontStyle.italic,
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -267,15 +281,20 @@ class _CustomerDeliveryPageState extends State<CustomerDeliveryPage> {
           padding: const EdgeInsets.all(16),
           child: TextFormField(
             style: const TextStyle(
-              color: Colors.white,
+              color: Colors.black,
+              fontFamily: "Mont"
             ),
             controller: controller,
             maxLines: maxLines,
             decoration: InputDecoration(
-              prefixIcon: icon != null ? Icon(icon) : null,
+              prefixIcon: icon != null ? Icon(icon,color: Colors.blue[900],) : null,
               labelText: label,
+              labelStyle: TextStyle(
+                  color: Colors.blue[900],
+                  fontFamily: "Mont",
+                  fontWeight: FontWeight.bold),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(3)),
-              fillColor: Colors.grey,
+              fillColor: Colors.white,
               filled: true,
             ),
             validator: (value) {

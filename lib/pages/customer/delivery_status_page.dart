@@ -63,11 +63,21 @@ class DeliveryStatusPage extends StatelessWidget {
                                   context: context,
                                   builder: (BuildContext context) {
                                     return AlertDialog(
-                                      title: const Text(
+                                      title: Text(
                                         "Schedule Delivery",
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          fontFamily: "Mont",
+                                        ),
                                       ),
                                       content: const Text(
-                                          "Are you sure you want to schedule a delivery for this request?"),
+                                        "Are you sure you want to schedule a delivery for this request?",
+                                        style: TextStyle(
+                                          fontFamily: "Mont"
+                                        ),
+                                      ),
                                       actions: [
                                         TextButton(
                                           child: Text(
@@ -75,7 +85,8 @@ class DeliveryStatusPage extends StatelessWidget {
                                             style: TextStyle(
                                                 color: Theme.of(context)
                                                     .colorScheme
-                                                    .tertiary),
+                                                    .primary,
+                                                fontFamily: "Mont"),
                                           ),
                                           onPressed: () {
                                             Navigator.of(context).pop();
@@ -87,7 +98,8 @@ class DeliveryStatusPage extends StatelessWidget {
                                             style: TextStyle(
                                                 color: Theme.of(context)
                                                     .colorScheme
-                                                    .tertiary),
+                                                    .primary,
+                                                fontFamily: "Mont"),
                                           ),
                                           onPressed: () {
                                             Navigator.of(context).pop();
@@ -104,19 +116,22 @@ class DeliveryStatusPage extends StatelessWidget {
                                 );
                               } else {
                                 // Notify user that delivery can only be scheduled after repair completion
-                                showDialog(context: context, builder: (context){
-                                  return const AlertDialog(
-                                    backgroundColor: Colors.deepPurple,
-                                    title: Center(
-                                      child: Text(
-                                        'Delivery can only be scheduled once repair is completed.',
-                                        style: TextStyle(
-                                          fontFamily: "Mont",
-                                          fontSize: 17,
-                                        ),),
-                                    ),
-                                  );
-                                });
+                                showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return const AlertDialog(
+                                        backgroundColor: Colors.deepPurple,
+                                        title: Center(
+                                          child: Text(
+                                            'Delivery can only be scheduled once repair is completed.',
+                                            style: TextStyle(
+                                              fontFamily: "Mont",
+                                              fontSize: 17,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    });
                               }
                             },
                             style: ElevatedButton.styleFrom(
