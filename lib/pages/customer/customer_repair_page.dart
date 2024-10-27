@@ -24,10 +24,8 @@ class _CustomerRepairPageState extends State<CustomerRepairPage> {
   String? warrantyOption;
   String? selectedLuggageType;
   final user = FirebaseAuth.instance.currentUser!;
-  String customerFirstName = "";
-  String customerSurname = "";
+  String customerFullName = "";
   String customerEmail = "";
-  String paymentMade = "no";
   final TextEditingController _brandController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -47,9 +45,8 @@ class _CustomerRepairPageState extends State<CustomerRepairPage> {
           .get();
       if (userDoc.exists) {
         setState(() {
-          customerFirstName = userDoc['firstName'] ?? ''; // Get first name
-          customerSurname = userDoc['Surname'] ?? ''; // Get first name
-          customerEmail = userDoc['email'] ?? ''; // Get email
+          customerFullName = userDoc['fullName'] ?? '';
+          customerEmail = userDoc['email'] ?? '';
         });
       }
     } catch (e) {
@@ -197,8 +194,7 @@ class _CustomerRepairPageState extends State<CustomerRepairPage> {
       'userId': user.uid,
       'date': timestamp,
       'status': 'Pending',
-      'customerName': customerFirstName,
-      'customerSurname': customerSurname,
+      'customerFullName': customerFullName,
       'customerEmail': customerEmail,
       'images': imageUrls,
       'typeOfLuggage': selectedLuggageType,
@@ -207,7 +203,6 @@ class _CustomerRepairPageState extends State<CustomerRepairPage> {
       'under_warranty': warrantyOption,
       'proofImage': proofImageUrl,
       'fee': fee,
-      'payment_made': paymentMade,
     };
 
     try {
@@ -222,9 +217,9 @@ class _CustomerRepairPageState extends State<CustomerRepairPage> {
         _selectedImages.clear();
         proofImage = null;
         warrantyOption = null;
-        selectedLuggageType = null; // Reset luggage type
-        _brandController.clear(); // Clear brand field
-        _descriptionController.clear(); // Clear description field
+        selectedLuggageType = null;
+        _brandController.clear();
+        _descriptionController.clear();
       });
     } catch (e) {
       // Handle any errors

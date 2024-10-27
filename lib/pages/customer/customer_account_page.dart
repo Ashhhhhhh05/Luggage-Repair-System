@@ -50,13 +50,13 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
     }
   }
 
-  Future<void> updateUserData(String firstName) async {
+  Future<void> updateUserData(String fullName) async {
     try {
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .update({
-        'firstName': firstName,
+        'fullName': fullName,
       });
       _showSnackBar("User data successfully updated.", Colors.green[900]!);
     } catch (e) {

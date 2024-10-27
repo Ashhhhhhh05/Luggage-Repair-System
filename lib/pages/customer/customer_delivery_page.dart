@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -36,6 +37,8 @@ class _CustomerDeliveryPageState extends State<CustomerDeliveryPage> {
   final _deliveryAddressController = TextEditingController();
   final _specialInstructionController = TextEditingController();
   DateTime? _preferredDate;
+  final user = FirebaseAuth.instance.currentUser!;
+
 
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
@@ -68,7 +71,8 @@ class _CustomerDeliveryPageState extends State<CustomerDeliveryPage> {
 
         try {
           // Saving to Firestore
-          await FirebaseFirestore.instance.collection('deliveries').add({
+          await FirebaseFirestore.instance.collection('deliveries').doc(widget.requestId).set({
+            'userId': user.uid,
             'deliveryId': deliveryId,
             'serviceType': booking.serviceType,
             'delivery_request_date': booking.date,
@@ -77,7 +81,6 @@ class _CustomerDeliveryPageState extends State<CustomerDeliveryPage> {
             'preferredDate': booking.preferredDate,
             'specialInstruction': booking.specialInstruction,
             'createdAt': Timestamp.now(),
-            'repairId': widget.requestId,
           });
 
           // Update the status of the repair request
@@ -119,20 +122,23 @@ class _CustomerDeliveryPageState extends State<CustomerDeliveryPage> {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           backgroundColor: Colors.white,
-          title: Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.green[600]),
-              const SizedBox(width: 10),
-              Text(
-                'Delivery Scheduled',
-                style: TextStyle(
-                  color: Colors.blue[900],
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
-                  fontFamily: "Mont",
+          title: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.green[600]),
+                const SizedBox(width: 15),
+                Text(
+                  'Delivery Scheduled',
+                  style: TextStyle(
+                    color: Colors.blue[900],
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                    fontFamily: "Mont",
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           content: Text(
             'Your delivery has been scheduled successfully.',
@@ -384,7 +390,6 @@ class _CustomerDeliveryPageState extends State<CustomerDeliveryPage> {
   }
 
   String generateDeliveryId() {
-    // Generate a unique delivery ID (you can customize this logic)
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final random = Random();
     return List.generate(8, (index) => characters[random.nextInt(characters.length)]).join();

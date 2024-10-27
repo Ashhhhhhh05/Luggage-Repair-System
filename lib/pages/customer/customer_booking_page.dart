@@ -42,9 +42,9 @@ class _CustomerBookingPageState extends State<CustomerBookingPage> {
               DateFormat('yyyy-MM-dd HH:mm').format(dateTime);
 
           // Fetch preferred date from pickups collection
-          String requestId =
-              doc.id; // Use the request ID to fetch the preferred date
-          String preferredDate = await fetchPickupDate(requestId);
+          String requestId = doc.id; // Use the request ID to fetch the preferred date
+          String preferredPickupDate = await fetchPickupDate(requestId);
+          String preferredDeliveryDate = await fetchDeliveryDate(requestId);
 
           userBookings.add(Booking(
             name: data['customerName'] ?? 'Unknown',
@@ -54,7 +54,8 @@ class _CustomerBookingPageState extends State<CustomerBookingPage> {
             brand: data['brand'] ?? 'Unknown',
             description: data['description'] ?? 'Unknown',
             requestDate: formattedDate,
-            pickupDate: preferredDate,
+            pickupDate: preferredPickupDate,
+            deliveryDate: preferredDeliveryDate,
             status: data['status'] ?? 'Unknown',
             id: doc.id,
             fee: data['fee'] ?? 'Unknown',
@@ -88,6 +89,27 @@ class _CustomerBookingPageState extends State<CustomerBookingPage> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error fetching pickup date: $e')),
+      );
+      return 'Error';
+    }
+  }
+
+  Future<String> fetchDeliveryDate(String requestId) async {
+    try {
+      DocumentSnapshot deliveryDoc =
+          await _firestore.collection('deliveries').doc(requestId).get();
+
+      if (deliveryDoc.exists) {
+        var data = deliveryDoc.data() as Map<String, dynamic>;
+        String preferredDate = data['preferredDate'] as String;
+        DateTime preferredDateTime = DateTime.parse(preferredDate);
+        return DateFormat('yyyy-MM-dd').format(preferredDateTime);
+      } else {
+        return 'No delivery date available';
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching delivery date: $e')),
       );
       return 'Error';
     }
@@ -220,6 +242,8 @@ class _CustomerBookingPageState extends State<CustomerBookingPage> {
               Text('Request Date: ${booking.requestDate}',
                   style: const TextStyle(fontFamily: "Mont", fontSize: 16)),
               Text('Pickup Date: ${booking.pickupDate}',
+                  style: const TextStyle(fontFamily: "Mont", fontSize: 16)),
+              Text('Delivery Date: ${booking.deliveryDate}',
                   style: const TextStyle(fontFamily: "Mont", fontSize: 16)),
               Text('Status: ${booking.status}',
                   style: const TextStyle(fontFamily: "Mont", fontSize: 16)),
@@ -395,6 +419,10 @@ class BookingCard extends StatelessWidget {
                 style: const TextStyle(
                     fontSize: 16.0, color: Colors.white, fontFamily: "Mont")),
             const SizedBox(height: 8.0),
+            Text('Delivery Date: ${booking.deliveryDate}',
+                style: const TextStyle(
+                    fontSize: 16.0, color: Colors.white, fontFamily: "Mont")),
+            const SizedBox(height: 8.0),
             Text('Fee: ${booking.fee}',
                 style: const TextStyle(
                     fontSize: 16.0, color: Colors.white, fontFamily: "Mont")),
@@ -484,6 +512,7 @@ class Booking {
   final String id;
   final String fee;
   final String pickupDate;
+  final String deliveryDate;
 
   Booking({
     required this.name,
@@ -497,5 +526,6 @@ class Booking {
     required this.id,
     required this.fee,
     required this.pickupDate,
+    required this.deliveryDate,
   });
 }
