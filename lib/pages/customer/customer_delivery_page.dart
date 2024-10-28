@@ -177,7 +177,7 @@ class _CustomerDeliveryPageState extends State<CustomerDeliveryPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
-              child: const Text(
+              child: Text(
                 'OK',
                 style: TextStyle(
                   color: Colors.white,
@@ -186,8 +186,7 @@ class _CustomerDeliveryPageState extends State<CustomerDeliveryPage> {
                   fontFamily: "Nunito",
                 ),
               ),
-              onPressed: () =>
-                  Navigator.pushNamedAndRemoveUntil(context, '/customer_home_nav', (route) => false),
+              onPressed: () => Navigator.popAndPushNamed(context, 'delivery_status_page'),
             ),
           ],
         );
