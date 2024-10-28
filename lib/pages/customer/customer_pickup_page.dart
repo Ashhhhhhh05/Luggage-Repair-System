@@ -39,6 +39,28 @@ class _CustomerPickupPageState extends State<CustomerPickupPage> {
   DateTime? _preferredDate;
   final user = FirebaseAuth.instance.currentUser!;
 
+  Future<Map<String, String>> _getUserInfo() async {
+    try {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      final fullName = userDoc['fullName'];
+      final email = userDoc['email'];
+      return {
+        'fullName': fullName,
+        'email': email,
+      };
+    } catch (error) {
+      print("Error fetching user info: $error");
+      return {
+        'fullName': '',
+        'email': '',
+      };
+    }
+  }
+
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       if (_preferredDate == null) {
@@ -70,12 +92,16 @@ class _CustomerPickupPageState extends State<CustomerPickupPage> {
         );
 
         try {
+          // Fetch user information
+          Map<String, String> userInfo = await _getUserInfo();
           // Saving to Firestore with requestId as the document ID
           await FirebaseFirestore.instance
               .collection('pickups')
               .doc(widget.requestId)
               .set({
             'userId': user.uid,
+            'fullName': userInfo['fullName'],
+            'email': userInfo['email'],
             'pickupId': pickupId,
             'serviceType': booking.serviceType,
             'pickup_request_date': booking.date,
@@ -166,7 +192,7 @@ class _CustomerPickupPageState extends State<CustomerPickupPage> {
                 ),
               ),
               onPressed: () =>
-                  Navigator.popAndPushNamed(context, 'pickup_status_page'),
+                  Navigator.pushNamedAndRemoveUntil(context, '/customer_home_nav', (route) => false),
             ),
           ],
         );

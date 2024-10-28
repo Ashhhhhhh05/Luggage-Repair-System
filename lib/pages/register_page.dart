@@ -109,28 +109,37 @@ class _RegisterPageState extends State<RegisterPage> {
         String uid = userCredential.user!.uid;
 
         // Pop loading icon + save customer details in Firestore
-        Navigator.pop(context);
-        await FirebaseFirestore.instance.collection('users').doc(uid).set({
-          'role': 'customer',
-          'fullName': fullNameController.text.trim(),
-          'email': emailController.text.trim(),
-          'phone': phoneNumber,
-        });
+        if (mounted) {
+          Navigator.pop(context);
+        }
 
-        // Navigate to Homepage if successful
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const CustomerHomeNav()),
-        );
+          await FirebaseFirestore.instance.collection('users').doc(uid).set({
+            'role': 'customer',
+            'fullName': fullNameController.text.trim(),
+            'email': emailController.text.trim(),
+            'phone': phoneNumber,
+          });
+
+          // Navigate to Homepage if successful
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const CustomerHomeNav()),
+          );
+        }
       } else {
         // Pop loading icon + show error message, passwords don't match
-        Navigator.pop(context);
-        showErrorMessage("Passwords do not match!");
+        if (mounted) {
+          Navigator.pop(context);
+          showErrorMessage("Passwords do not match!");
+        }
       }
     } on FirebaseAuthException catch (e) {
       // Pop loading icon + show error message
-      Navigator.pop(context);
-      showErrorMessage(e.code);
+      if (mounted) {
+        Navigator.pop(context);
+        showErrorMessage(e.code);
+      }
     }
   }
 

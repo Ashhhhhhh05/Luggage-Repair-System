@@ -39,6 +39,28 @@ class _CustomerDeliveryPageState extends State<CustomerDeliveryPage> {
   DateTime? _preferredDate;
   final user = FirebaseAuth.instance.currentUser!;
 
+  Future<Map<String, String>> _getUserInfo() async {
+    try {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      final fullName = userDoc['fullName'];
+      final email = userDoc['email'];
+      return {
+        'fullName': fullName,
+        'email': email,
+      };
+    } catch (error) {
+      print("Error fetching user info: $error");
+      return {
+        'fullName': '',
+        'email': '',
+      };
+    }
+  }
+
 
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
@@ -70,9 +92,13 @@ class _CustomerDeliveryPageState extends State<CustomerDeliveryPage> {
         );
 
         try {
+          // Fetch user information
+          Map<String, String> userInfo = await _getUserInfo();
           // Saving to Firestore
           await FirebaseFirestore.instance.collection('deliveries').doc(widget.requestId).set({
             'userId': user.uid,
+            'fullName': userInfo['fullName'],
+            'email': userInfo['email'],
             'deliveryId': deliveryId,
             'serviceType': booking.serviceType,
             'delivery_request_date': booking.date,
@@ -151,7 +177,7 @@ class _CustomerDeliveryPageState extends State<CustomerDeliveryPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
-              child: Text(
+              child: const Text(
                 'OK',
                 style: TextStyle(
                   color: Colors.white,
@@ -160,7 +186,8 @@ class _CustomerDeliveryPageState extends State<CustomerDeliveryPage> {
                   fontFamily: "Nunito",
                 ),
               ),
-              onPressed: () => Navigator.popAndPushNamed(context, 'delivery_status_page'),
+              onPressed: () =>
+                  Navigator.pushNamedAndRemoveUntil(context, '/customer_home_nav', (route) => false),
             ),
           ],
         );

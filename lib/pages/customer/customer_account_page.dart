@@ -38,11 +38,13 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
           .collection('users')
           .doc(user.uid)
           .get();
-      if (userDoc.exists) {
+      if (userDoc.exists && userDoc.data() != null) {
+        Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
+
         setState(() {
           fullName = userDoc['fullName'] ?? '';
           _phoneNumber = userDoc['phone'] ?? '';
-          _profileImageUrl = userDoc['profileImageUrl'] ?? '';
+          _profileImageUrl = data.containsKey('profileImageUrl') ? data['profileImageUrl'] : '';
         });
       }
     } catch (e) {
@@ -224,7 +226,7 @@ class _CustomerAccountPageState extends State<CustomerAccountPage> {
           ),
           _buildCustomTile(
             title: "Phone Number",
-            subtitle: "0$_phoneNumber",
+            subtitle: _phoneNumber,
             icon: Icons.phone,
             onTap: () {
               _showUpdateDialog(
