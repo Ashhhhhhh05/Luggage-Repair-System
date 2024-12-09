@@ -1,4 +1,2 @@
 DIT GROUP 2: Project
-
-TODO:
-final touches 
+Repair system available on the web and mobile.
