@@ -1,2 +1,1 @@
-DIT GROUP 2: Project
-Repair system available on the web and mobile.
+Luggage Repair System available on the web and Android devices. 
